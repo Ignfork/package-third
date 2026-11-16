@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package — Solana OTC Dock</title>
+<meta property="og:title" content="Package — Solana OTC Dock">
+<meta property="og:description" content="Ship the whole bag at one sealed price. Wallet-to-wallet OTC lots for pump.fun coins on Solana.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="description" content="Package ($Package): ship the whole bag at one sealed price. Wallet-to-wallet OTC lots on Solana.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 29 9.500v13L16 29 3 22.500v-13z' fill='%23c8935a'/%3E%3Cpath d='M16 16 29 9.500v13L16 29z' fill='%238a5a2c'/%3E%3Cpath d='M16 16 3 9.500 16 3l13 6.500z' fill='%23e9bd88'/%3E%3Cpath d='m9 6.500 13 6.500v5l-3 1.500v-5L6.200 8z' fill='%23ff6a1a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Saira:wght@500;600;700;800&family=Saira+Stencil+One&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+:root{
+  --desk:#0a1a2a;
+  --frame:#ece8d9;--frame-lt:#fffef8;--frame-dk:#b9b29c;--frame-dkr:#6b6657;
+  --paper:#fcfbf5;--ink:#161a22;--mute:#5b6270;--line:#d9d3c0;--row:#efeadb;
+  --kraft:#c8935a;--kraft-lt:#e9bd88;--kraft-dk:#8a5a2c;
+  --orange:#ff6a1a;--yellow:#ffc928;--cyan:#22d3ee;--blue:#2563ff;--magenta:#ec4899;
+  --green:#16b364;--red:#e5484d;--violet:#7c5cff;--teal:#0fa3a3;
+  --sans:"IBM Plex Sans",Tahoma,Verdana,"Segoe UI",sans-serif;
+  --head:"Saira","Arial Narrow",Tahoma,sans-serif;
+  --stencil:"Saira Stencil One","Arial Black",Impact,sans-serif;
+  --mono:"IBM Plex Mono","Lucida Console","Courier New",monospace;
+  --pix:"Silkscreen","Lucida Console",monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:14px/1.55 var(--sans);color:var(--ink);background:var(--desk);padding-bottom:62px;min-height:100vh;-webkit-font-smoothing:antialiased}
+body:before{content:"";position:fixed;inset:0;z-index:-2;
+  background:
+   radial-gradient(1000px 560px at 92% -6%,rgba(255,106,26,.34),transparent 62%),
+   radial-gradient(820px 560px at -6% 28%,rgba(124,92,255,.32),transparent 62%),
+   radial-gradient(900px 640px at 58% 112%,rgba(22,179,100,.24),transparent 62%),
+   radial-gradient(600px 420px at 40% 40%,rgba(34,211,238,.10),transparent 70%),
+   linear-gradient(180deg,#0b1d30,#081521)}
+body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(rgba(34,211,238,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.07) 1px,transparent 1px),linear-gradient(rgba(34,211,238,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.035) 1px,transparent 1px);
+  background-size:96px 96px,96px 96px,24px 24px,24px 24px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 85%);mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 85%)}
+a{color:#1d4ed8}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1220px;margin:0 auto;padding:0 18px}
+.mono{font-family:var(--mono)}
+::selection{background:var(--orange);color:#fff}
+
+/* ---------- top strip + menubar ---------- */
+.strip{background:#050d15;color:#cfdbe4;font:500 12px var(--mono);text-align:center;padding:6px 10px;border-bottom:1px solid #16324a;letter-spacing:.2px}
+.strip b{color:#fff;font-weight:600}.strip a{color:var(--cyan)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(22,179,100,.25),0 0 10px var(--green);margin-right:8px;animation:blink 2s infinite;vertical-align:1px}
+@keyframes blink{50%{opacity:.4}}
+.menubar{position:sticky;top:0;z-index:40;background:linear-gradient(#f7f4e8,#e4dfcd);border-bottom:1px solid #8f8873;box-shadow:inset 0 1px 0 #fff,0 6px 18px rgba(0,0,0,.35)}
+.menubar .wrap{display:flex;align-items:center;gap:14px;height:58px}
+.brand{display:flex;align-items:center;gap:9px;font:400 23px/1 var(--stencil);color:var(--ink);text-decoration:none;letter-spacing:.5px}
+.brand svg{width:32px;height:32px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.25))}
+.nav{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;padding-left:8px}
+.nav::-webkit-scrollbar{display:none}
+.nav a{padding:7px 12px;color:#3d424d;text-decoration:none;white-space:nowrap;border:1px solid transparent;border-radius:3px;font:600 13.500px var(--head);letter-spacing:.2px}
+.nav a:hover{background:rgba(255,255,255,.7);border-color:#c9c3ae}
+.nav a.on{background:#fff;border-color:#8f8873;color:var(--ink);box-shadow:inset 0 -3px 0 var(--orange),inset 0 1px 2px rgba(0,0,0,.12)}
+.chip{display:inline-flex;align-items:center;gap:7px;font:500 11px var(--mono);padding:6px 9px;background:#fff;border:1px solid #a9a28c;border-radius:3px;white-space:nowrap;box-shadow:inset 0 1px 2px rgba(0,0,0,.1)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 6px var(--green)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 15px;border-radius:4px;
+  background:linear-gradient(#ffffff,#ece8d9 85%,#dcd6c2);border:1px solid #5b6f9c;box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.25);
+  font:700 13px var(--head);letter-spacing:.2px;cursor:pointer;text-decoration:none;color:var(--ink);white-space:nowrap;transition:transform .08s,box-shadow .12s,filter .12s}
+.btn:hover{box-shadow:inset 0 0 0 2px #ffcf7a,0 2px 6px rgba(0,0,0,.3)}
+.btn:active{transform:translateY(1px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.btn.pri{background:linear-gradient(#ff9a52,#ff6a1a 55%,#e24e00);color:#fff;border-color:#8a2f00;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 0 #8a2f00,0 6px 14px rgba(255,106,26,.35)}
+.btn.pri:hover{filter:brightness(1.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 0 #8a2f00,0 8px 20px rgba(255,106,26,.5)}
+.btn.blue{background:linear-gradient(#5b8cff,#2563ff 55%,#1746c9);color:#fff;border-color:#0c2a80;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 #0c2a80}
+.btn.ghost{background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.35);box-shadow:none}
+.btn.ghost:hover{background:rgba(255,255,255,.14);box-shadow:none}
+.btn.lg{padding:13px 22px;font-size:15px}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.block{display:flex;width:100%}
+.btn[disabled]{opacity:.5;cursor:not-allowed;filter:grayscale(.4)}
+
+/* ---------- windows ---------- */
+.win{background:var(--frame);border:1px solid #0a2a66;border-radius:9px 9px 3px 3px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 40px rgba(0,0,0,.45),0 2px 0 rgba(0,0,0,.3);margin-bottom:26px;overflow:hidden}
+.tb{--a:#2f7bff;--b:#0d47c9;--c:#0a37a0;display:flex;align-items:center;gap:8px;height:32px;padding:0 6px 0 10px;color:#fff;font:700 13px var(--head);letter-spacing:.3px;text-shadow:0 1px 1px rgba(0,0,0,.55);
+  background:linear-gradient(180deg,var(--a) 0,var(--b) 14%,var(--b) 62%,var(--c) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.35);position:relative}
+.tb:after{content:"";position:absolute;left:0;right:0;top:0;height:45%;background:linear-gradient(rgba(255,255,255,.22),transparent);pointer-events:none}
+.tb>svg{width:17px;height:17px;flex:none}
+.tb .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb .t em{font-style:normal;font-weight:500;opacity:.85}
+.tb .x{display:flex;gap:3px;position:relative;z-index:1}
+.tb .x i{width:22px;height:21px;border-radius:4px;border:1px solid rgba(255,255,255,.75);background:linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,.05) 45%,rgba(0,0,0,.18));color:#fff;font:700 11px/19px var(--pix);text-align:center;text-shadow:0 1px 0 rgba(0,0,0,.5);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.tb .x i:last-child{background:linear-gradient(135deg,#ff9a7a,#e2401c 50%,#b42a0b)}
+.tb-blue{--a:#4f93ff;--b:#1556e0;--c:#0b3aa8}
+.tb-orange{--a:#ffb057;--b:#f0660f;--c:#b84300}
+.tb-pink{--a:#f58ac0;--b:#c2278a;--c:#7a3fd0}
+.tb-green{--a:#52d69a;--b:#0f9a5a;--c:#0a6b52}
+.tb-dark{--a:#5a6577;--b:#232a36;--c:#10141b}
+.tb-kraft{--a:#e2b27c;--b:#a8713a;--c:#6f4418}
+.tb-cyan{--a:#6fe6f5;--b:#0aa0bd;--c:#0b6a8a}
+.wb{padding:20px;background:var(--paper);margin:4px 4px 0;border:1px solid;border-color:#8f8873 #fff #fff #8f8873}
+.wb.flush{padding:0}
+.sb{display:flex;gap:3px;padding:3px 4px 4px;font:500 10.500px var(--mono);color:#4b5060}
+.sb span{padding:3px 9px;border:1px solid;border-color:#a59e88 #fff #fff #a59e88;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb span:first-child{flex:1}
+.hazard{height:9px;background:repeating-linear-gradient(-45deg,#14171d 0 11px,var(--yellow) 11px 22px);margin:0 4px}
+
+/* ---------- headings ---------- */
+.view{display:none;padding-top:30px;animation:vin .28s ease}
+.view.on{display:block}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}}
+.vh{color:#fff;margin:0 0 22px;display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.vh>div{flex:1 1 420px}
+.vh h1{font:800 44px/1 var(--head);letter-spacing:-.5px;margin:10px 0 8px;text-shadow:0 3px 0 rgba(0,0,0,.4)}
+.vh p{margin:0;color:#bfd0dc;max-width:700px;font-size:15px}
+.vh .crumb{font:500 11px var(--mono);color:#7fa0b6;border:1px solid #27475e;padding:6px 10px;border-radius:3px;background:rgba(5,13,21,.55);white-space:nowrap}
+.tag{display:inline-block;font:400 10px var(--pix);letter-spacing:1px;text-transform:uppercase;padding:4px 8px 3px;color:#14171d;background:var(--yellow);border-radius:2px}
+.tag.c{background:var(--cyan)}.tag.o{background:var(--orange);color:#fff}.tag.m{background:var(--magenta);color:#fff}.tag.g{background:var(--green);color:#fff}.tag.v{background:var(--violet);color:#fff}.tag.b{background:var(--blue);color:#fff}
+.sh{display:flex;align-items:center;gap:11px;margin:0 0 16px;flex-wrap:wrap}
+.sh h2{font:800 23px/1.1 var(--head);letter-spacing:-.2px;margin:0}
+.sh .num{font:400 10px var(--pix);background:var(--ink);color:var(--yellow);padding:5px 7px 4px;border-radius:2px}
+.sh .r{margin-left:auto;font-size:12.500px}
+.count{font:500 11px var(--mono);border:1px solid var(--line);padding:3px 8px;background:#fff;border-radius:20px}
+
+/* ---------- hero ---------- */
+.hero{background:radial-gradient(700px 380px at 78% 55%,#16314a 0,#0d1826 55%,#090f18 100%);color:#eef3f7;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:0;position:relative;overflow:hidden;margin:4px 4px 0;border:1px solid #000}
+.hero:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px);pointer-events:none;z-index:2}
+.hero-l{padding:34px 10px 26px 34px;position:relative;z-index:3}
+.eyebrow{font:400 10px var(--pix);letter-spacing:2.500px;color:var(--cyan);display:flex;align-items:center;gap:10px}
+.eyebrow:before{content:"";width:26px;height:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.tick{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0 22px;font:500 12px var(--mono)}
+.tick b{color:#14171d;background:var(--yellow);padding:5px 9px;border-radius:3px;font:700 13px var(--mono)}
+.ca{display:inline-flex;align-items:center;gap:8px;border:1px dashed #4a6079;padding:5px 10px;color:#c9d6e0;background:rgba(0,0,0,.35);max-width:100%;border-radius:3px}
+.ca span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ca button{background:none;border:0;color:var(--cyan);cursor:pointer;padding:0;font:600 11px var(--mono)}
+.tick a{color:var(--cyan)}
+.word{display:flex;align-items:center;gap:16px;margin:0}
+.word svg{width:82px;height:82px;flex:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))}
+.word span{font:400 clamp(50px,7vw,92px)/.86 var(--stencil);letter-spacing:1px;background:linear-gradient(180deg,#fff 0 50%,#ffd9a8 50% 56%,#ff8a3d 56% 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45))}
+.tagline{font:700 23px/1.25 var(--head);margin:20px 0 22px}
+.tagline em{font-style:normal;font-weight:500;color:#93a8b9}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:24px;max-width:560px}
+.stat{padding:10px 12px 9px;background:linear-gradient(#0a121c,#0d1a28);border:1px solid #233a50;border-top:3px solid var(--c,var(--cyan));border-radius:3px;box-shadow:inset 0 0 18px rgba(0,0,0,.5)}
+.stat small{display:block;font:400 8.500px var(--pix);letter-spacing:1px;color:#7d94a8;white-space:nowrap}
+.stat b{font:400 23px/1.25 var(--stencil);letter-spacing:.5px;color:#fff;white-space:nowrap;text-shadow:0 0 14px color-mix(in srgb,var(--c,#22d3ee) 60%,transparent)}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.quick{display:flex;flex-wrap:wrap;gap:6px 16px;font:600 13px var(--head)}
+.quick a{color:#cddae4;text-decoration:none;border-bottom:1px dotted #5f7a90}
+.quick a:hover{color:#fff;border-color:var(--orange)}
+.read{font:500 10.500px var(--mono);color:#62788c;margin-top:14px}
+.scene{position:relative;min-height:400px;z-index:1}
+.scene svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hud{font-family:"IBM Plex Mono","Lucida Console",monospace}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes scan{0%,100%{opacity:.18}50%{opacity:.6}}
+@keyframes sweep{0%,100%{transform:translateY(0)}50%{transform:translateY(-46px)}}
+.drone{animation:bob 3.400s ease-in-out infinite}.drone.d2{animation-duration:4.200s;animation-delay:-1.500s}
+.beam{animation:scan 1.600s ease-in-out infinite}
+.laser{animation:sweep 1.600s ease-in-out infinite}
+.lamp{animation:blink 1.300s infinite}
+
+/* ---------- banner, conveyor ---------- */
+.banner{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(#fffbe6,#fff1bf);border:1px solid #b88a00;border-left:8px solid var(--yellow);padding:13px 18px;margin-bottom:22px;box-shadow:0 10px 24px rgba(0,0,0,.35);border-radius:3px;font-size:14.500px}
+.banner b{color:#b34700}.banner a{margin-left:auto;font:700 13.500px var(--head);color:var(--ink)}
+.conv{height:64px;margin:0 0 26px;position:relative;overflow:hidden;border-radius:4px;background:linear-gradient(#17222f,#0f1822);border:1px solid #2a3d50;box-shadow:inset 0 0 24px rgba(0,0,0,.6)}
+.conv:before{content:"";position:absolute;left:0;right:0;bottom:8px;height:16px;background:repeating-linear-gradient(90deg,#3c4b5c 0 4px,#232f3d 4px 20px);border-top:2px solid #56687c;border-bottom:2px solid #0a1017;animation:rollers 1s linear infinite}
+@keyframes rollers{to{background-position:20px 0}}
+.conv i{position:absolute;bottom:24px;width:var(--w,38px);height:var(--h,28px);background:var(--k,#c8935a);border:1.500px solid #0a1017;border-radius:2px;animation:belt2 22s linear infinite;box-shadow:inset -6px 0 0 rgba(0,0,0,.18),inset 0 3px 0 rgba(255,255,255,.22)}
+.conv i:before{content:"";position:absolute;left:42%;width:16%;top:0;bottom:0;background:var(--t,#ff6a1a)}
+.conv i:after{content:"";position:absolute;left:3px;bottom:3px;width:9px;height:6px;background:#fffef8}
+@keyframes belt2{from{left:-6%}to{left:104%}}
+
+/* ---------- cards ---------- */
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.card{background:#fff;border:1px solid #cfc8b3;border-top:4px solid var(--sh,#111);border-radius:3px;padding:18px 18px 20px;position:relative;box-shadow:0 1px 0 #fff inset,0 3px 0 rgba(0,0,0,.06);transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(20,23,29,.14)}
+.card .ic{width:46px;height:46px;border-radius:6px;display:grid;place-items:center;background:color-mix(in srgb,var(--sh) 14%,#fff);border:1px solid color-mix(in srgb,var(--sh) 45%,#fff);margin-bottom:12px}
+.card .ic svg{width:28px;height:28px}
+.card .tag{position:absolute;right:14px;top:16px}
+.card h3{margin:0 0 6px;font:800 18px/1.2 var(--head)}
+.card p{margin:0;color:var(--mute);font-size:14px}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;position:relative}
+.flow:before{content:"";position:absolute;left:4%;right:4%;top:27px;height:6px;background:repeating-linear-gradient(90deg,#14171d 0 10px,var(--yellow) 10px 20px);border-radius:3px;opacity:.9}
+.flow div{padding:0 14px;text-align:center;position:relative}
+.flow .st{width:60px;height:60px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:#fff;border:3px solid var(--c);box-shadow:0 0 0 5px var(--paper),0 6px 14px rgba(0,0,0,.18);position:relative}
+.flow .st svg{width:30px;height:30px}
+.flow .st b{position:absolute;right:-8px;top:-6px;font:400 9px var(--pix);background:var(--c);color:#fff;padding:3px 5px 2px;border-radius:2px}
+.flow h3{margin:0 0 4px;font:800 17px var(--head)}
+.flow p{margin:0;font-size:13.500px;color:var(--mute)}
+.short{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.short a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 6px 12px;text-decoration:none;color:var(--ink);font:600 12.500px var(--head);border:1px solid transparent;border-radius:3px;text-align:center}
+.short a svg{width:44px;height:44px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.15));transition:transform .15s}
+.short a:hover{background:#e6eeff;border-color:#9db6f5}
+.short a:hover svg{transform:translateY(-3px) scale(1.06)}
+.short small{display:block;font:500 10.500px var(--mono);color:var(--mute)}
+
+/* ---------- forms ---------- */
+label.f{display:block;font:700 12.500px var(--head);margin-bottom:14px;letter-spacing:.2px}
+label.f span{display:block;margin-bottom:5px}
+.in{width:100%;padding:10px 11px;background:#fff;border:1px solid #7f8fb3;border-radius:3px;box-shadow:inset 0 2px 3px rgba(0,0,0,.1);font:500 13px var(--mono);min-width:0;transition:border-color .12s,box-shadow .12s}
+.in:focus{outline:0;border-color:var(--orange);box-shadow:inset 0 2px 3px rgba(0,0,0,.08),0 0 0 3px rgba(255,106,26,.25)}
+select.in{font:500 13.500px var(--sans)}
+.note{background:#eaf2ff;border:1px solid #9db6f5;border-left:5px solid var(--blue);padding:11px 14px;font-size:13px;margin:4px 0 16px;border-radius:3px}
+.note b{display:block;font-family:var(--head)}
+.err{color:#b3261e;font-size:12.500px;min-height:19px;margin:-6px 0 8px;font-weight:600}
+
+/* ---------- tables, rows ---------- */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.500px}
+th{font:400 9px var(--pix);letter-spacing:1px;text-align:left;padding:10px 14px 8px;background:linear-gradient(#f5f2e6,#e6e1cf);border-bottom:1px solid #b9b29c;border-right:1px solid #d3cdb8;color:#4a4f5c;white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--row);white-space:nowrap;vertical-align:middle}
+td.n{font-family:var(--mono);font-size:13px}
+tbody tr:hover td{background:#fff8dc}
+.tok{display:flex;align-items:center;gap:10px;font:700 14px var(--head)}
+.av{width:28px;height:28px;flex:none;display:grid;place-items:center;font:700 11px var(--mono);color:#fff;border:1px solid #14171d;border-radius:4px;object-fit:cover}
+.side{font:400 9px var(--pix);padding:4px 7px 3px;border:1px solid;border-radius:2px}
+.side.ask{color:#b3261e;background:#ffe9e7;border-color:#f1a9a3}.side.bid{color:#0b7a4a;background:#e0f7ea;border-color:#8fd9b0}
+.up{color:#0b7a4a}.dn{color:#b3261e}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;background:linear-gradient(#f5f2e6,#e9e4d2);border-top:1px solid var(--line);border-bottom:1px solid #b9b29c}
+.tools .in{width:auto;flex:0 1 200px;padding:7px 10px}
+.tabs{margin-left:auto;display:flex;background:#fff;border:1px solid #a9a28c;border-radius:4px;overflow:hidden}
+.tabs button{background:none;border:0;border-right:1px solid #d3cdb8;padding:6px 14px;cursor:pointer;font:600 12.500px var(--head)}
+.tabs button:last-child{border:0}
+.tabs button.on{background:var(--ink);color:#fff}
+.empty{text-align:center;padding:40px 16px 36px;color:var(--mute);background:repeating-linear-gradient(-45deg,transparent 0 14px,rgba(200,147,90,.06) 14px 28px)}
+.empty svg{width:84px;height:84px;filter:drop-shadow(0 6px 0 rgba(0,0,0,.12))}
+.empty b{display:block;color:var(--ink);font:800 18px var(--head);margin:10px 0 2px}
+.empty p{margin:14px 0 0}
+.rows>div{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--row)}
+.rows .ic{width:32px;height:32px;display:grid;place-items:center;background:#e0f7ea;border:1px solid #8fd9b0;border-radius:4px;font-weight:700;color:#0b7a4a}
+.rows small{display:block;font:500 11px var(--mono);color:var(--mute)}
+.rows .ago{margin-left:auto;font:500 11px var(--mono);color:var(--mute)}
+.kv{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--row);font-size:13.500px}
+.kv span{color:var(--mute)}.kv b{text-align:right}
+.pad{padding:18px 18px 0}
+
+/* ---------- shipping label ---------- */
+.label{background:#fffef8;color:#14171d;border:2px solid #14171d;border-radius:4px;font:500 12px var(--mono);position:relative;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.label .lh{display:flex;justify-content:space-between;align-items:center;padding:9px 12px 7px;border-bottom:2px solid #14171d;background:repeating-linear-gradient(-45deg,var(--yellow) 0 14px,#ffd95a 14px 28px);font:400 10px var(--pix);letter-spacing:1px}
+.label .lt{display:flex;gap:12px;align-items:center;padding:14px 12px;border-bottom:2px dashed #14171d}
+.label .lt .av{width:46px;height:46px;font-size:16px}
+.label .lt b{font:800 20px/1.1 var(--head);display:block}
+.label .kv{border-bottom:1px dotted #a8a290;padding:8px 12px;font-size:12px}
+.label .kv b{font:600 12px var(--mono)}
+.bar{display:flex;align-items:stretch;height:50px;padding:10px 12px 0;overflow:hidden}
+.bar i{background:#14171d;display:block;flex:none}
+.trk{padding:4px 12px 10px;font:400 9px var(--pix);letter-spacing:1.500px;display:flex;justify-content:space-between}
+.swap{display:flex;align-items:center;justify-content:center;gap:16px;border-top:2px solid #14171d;padding:11px;font:800 15px var(--head);background:#e9f6ff}
+.fine{font:400 11.500px var(--sans);color:var(--mute);padding:9px 12px 12px;background:#fff}
+.stamp{position:absolute;right:12px;top:52px;transform:rotate(-9deg);border:3px double var(--c,#b3261e);color:var(--c,#b3261e);font:400 12px var(--stencil);padding:4px 10px 2px;letter-spacing:2px;opacity:.9;background:rgba(255,255,255,.75);border-radius:3px}
+
+/* ---------- slippage scale ---------- */
+.meter{height:30px;background:#eef0f3;border:1px solid #7f8fb3;border-radius:3px;position:relative;margin:5px 0 14px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.15)}
+.meter i{display:block;height:100%;transition:width .45s cubic-bezier(.2,.8,.2,1);background-image:linear-gradient(rgba(255,255,255,.35),transparent 55%),repeating-linear-gradient(90deg,rgba(0,0,0,.14) 0 2px,transparent 2px 12px)}
+.meter span{position:absolute;right:10px;top:5px;font:700 12px var(--mono)}
+.ml{font:700 12.500px var(--head)}
+
+/* ---------- docs ---------- */
+details{border-bottom:1px solid var(--row)}
+summary{cursor:pointer;padding:15px 4px;font:700 16px var(--head);list-style:none;display:flex;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary:before{content:"+";width:22px;height:22px;flex:none;display:grid;place-items:center;background:linear-gradient(#fff,#e6e1cf);border:1px solid #7f8fb3;border-radius:3px;font:700 13px var(--mono)}
+details[open] summary:before{content:"–";background:var(--ink);color:#fff;border-color:var(--ink)}
+summary:hover{color:#b34700}
+details p{margin:0 4px 16px 38px;color:#3d424c;max-width:780px;font-size:14.500px}
+.gloss{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.gloss div{background:#fff;border:1px solid var(--line);border-left:4px solid var(--kraft);padding:11px 13px;font-size:13px;border-radius:3px}
+.gloss b{font:400 10px var(--pix);display:block;color:#b34700;margin-bottom:3px;letter-spacing:1px}
+.check label{display:flex;gap:11px;padding:10px 4px;border-bottom:1px dotted var(--line);cursor:pointer;font-size:14px}
+.check label:hover{background:#fff8dc}
+.check input{accent-color:var(--orange);width:17px;height:17px;margin-top:2px;flex:none}
+
+/* ---------- footer ---------- */
+.foot{margin-top:14px;border-top:1px solid #23415a;padding:26px 0 18px;color:#9db2c2;display:grid;grid-template-columns:1.600fr repeat(3,1fr);gap:24px;font-size:13.500px}
+.foot .brand{color:#fff;font-size:26px}
+.foot p{margin:10px 0 0;max-width:340px}
+.foot h4{font:400 10px var(--pix);letter-spacing:1.500px;color:var(--cyan);margin:6px 0 10px}
+.foot a{display:block;color:#d6e2ea;text-decoration:none;padding:3px 0}
+.foot a:hover{color:var(--orange)}
+.legal{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;border-top:1px dashed #23415a;padding:14px 0 6px;font:500 11px var(--mono);color:#6f8799}
+
+/* ---------- desktop icons, taskbar, start menu ---------- */
+.desk{position:fixed;left:14px;top:118px;z-index:5;display:none;flex-direction:column;gap:6px}
+.desk a{width:84px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;color:#fff;text-decoration:none;font:600 11.500px var(--head);text-align:center;text-shadow:0 1px 2px #000;border:1px dotted transparent;border-radius:3px}
+.desk a svg{width:38px;height:38px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+.desk a:hover{background:rgba(37,99,255,.35);border-color:rgba(255,255,255,.6)}
+@media (min-width:1460px){.desk{display:flex}}
+.taskbar{position:fixed;left:0;right:0;bottom:0;height:42px;z-index:50;display:flex;align-items:center;gap:8px;padding:0 0 0 0;background:linear-gradient(#4a8dff 0,#245edb 9%,#1f52c7 50%,#1a47b3 92%,#12348a 100%);border-top:1px solid #0c2a80;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 -6px 20px rgba(0,0,0,.4);color:#fff}
+.start{height:100%;background:linear-gradient(#5fd88a 0,#2fae5b 12%,#229a4c 55%,#1a7f3d 100%);border:0;border-right:1px solid #0d4a22;color:#fff;font:italic 800 17px var(--head);padding:0 22px 2px 12px;border-radius:0 14px 14px 0;cursor:pointer;display:flex;align-items:center;gap:8px;text-shadow:0 1px 2px rgba(0,0,0,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),2px 0 6px rgba(0,0,0,.3)}
+.start:hover{filter:brightness(1.1)}
+.start svg{width:24px;height:24px}
+.task{background:linear-gradient(#1a47b3,#12348a);border:1px solid #0c2a80;border-radius:3px;padding:6px 14px;font:600 12.500px var(--head);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-shadow:inset 0 1px 3px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px}
+.task svg{width:15px;height:15px;flex:none}
+.tray{margin-left:auto;display:flex;align-items:center;gap:12px;background:linear-gradient(#2aa7f0,#1583d6 50%,#0f6dba);border-left:1px solid #0c4f8f;box-shadow:inset 1px 0 0 rgba(255,255,255,.35);padding:0 14px;height:100%;font:500 11.500px var(--mono);white-space:nowrap}
+.smenu{position:fixed;left:0;bottom:42px;z-index:55;width:286px;background:var(--frame);border:1px solid #0a2a66;border-radius:8px 8px 0 0;box-shadow:0 -10px 34px rgba(0,0,0,.5);display:none;overflow:hidden}
+.smenu.on{display:block;animation:vin .15s ease}
+.smenu header{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#fff;font:400 20px var(--stencil);background:linear-gradient(180deg,#4f93ff,#1556e0 50%,#0b3aa8);text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.smenu header svg{width:36px;height:36px}
+.smenu header small{display:block;font:500 10.500px var(--mono);opacity:.85}
+.smenu nav{padding:6px;background:#fff}
+.smenu a{display:flex;gap:12px;align-items:center;padding:7px 10px;color:var(--ink);text-decoration:none;font:600 13.500px var(--head);border-radius:3px}
+.smenu a svg{width:24px;height:24px;flex:none}
+.smenu a:hover{background:#2563ff;color:#fff}
+.smenu hr{border:0;border-top:1px solid var(--line);margin:5px 0}
+.smenu footer{padding:8px 12px;font:500 10.500px var(--mono);color:#fff;background:linear-gradient(#f0660f,#b84300);display:flex;justify-content:space-between}
+
+/* ---------- modal, toast, boot ---------- */
+.ov{position:fixed;inset:0;background:rgba(4,10,16,.74);backdrop-filter:blur(3px);z-index:70;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex}
+.ov .win{width:min(480px,100%);margin:0;max-height:92vh;overflow:auto;animation:vin .18s ease}
+.ov .wb{margin-bottom:4px}
+#ovClose{cursor:pointer}
+.wl{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--row)}
+.wl b{flex:1;font:700 15px var(--head)}.wl small{color:var(--mute);font:500 11px var(--mono)}
+.toasts{position:fixed;right:16px;bottom:58px;z-index:80;display:flex;flex-direction:column;gap:8px}
+.toast{background:#fffef8;border:1px solid #14171d;border-left:8px solid var(--c,var(--green));border-radius:3px;padding:11px 14px;box-shadow:0 10px 24px rgba(0,0,0,.4);max-width:340px;font:600 13.500px var(--head);animation:vin .2s ease}
+.boot{position:fixed;inset:0;z-index:100;background:#050b12;color:#cfe;display:grid;place-items:center;transition:opacity .35s;text-align:center}
+.boot.off{opacity:0;pointer-events:none}
+.boot svg{width:96px;height:96px;animation:bob 1.200s ease-in-out infinite}
+.boot h2{font:400 44px/1 var(--stencil);color:#fff;margin:16px 0 4px;letter-spacing:2px}
+.boot h2 sup{font:400 11px var(--pix);color:var(--orange);margin-left:6px}
+.boot p{font:400 10px var(--pix);letter-spacing:2px;color:#6f8799;margin:0 0 22px}
+.boot .pb{width:240px;height:18px;border:2px solid #9fb3c4;border-radius:4px;padding:2px;margin:0 auto;overflow:hidden}
+.boot .pb i{display:block;height:100%;width:84px;background:repeating-linear-gradient(90deg,var(--orange) 0 10px,transparent 10px 14px);animation:pb 1.100s linear infinite}
+@keyframes pb{from{transform:translateX(-90px)}to{transform:translateX(250px)}}
+
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr}.hero-l{padding:26px 20px 8px}.scene{min-height:300px}
+  .grid3,.grid2,.gloss{grid-template-columns:1fr}
+  .flow{grid-template-columns:1fr 1fr;row-gap:24px}.flow:before{display:none}
+  .short{grid-template-columns:repeat(3,1fr)}
+  .stats{grid-template-columns:1fr 1fr}
+  .menubar .hide-s,.task{display:none}
+  .word svg{width:60px;height:60px}
+  .vh h1{font-size:34px}.vh .crumb{display:none}
+  .foot{grid-template-columns:1fr 1fr}
+  .wb{padding:16px}
+}
+@media (max-width:520px){.tray #trayWallet{display:none}.brand{font-size:20px}.menubar .wrap{gap:8px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.hint{font:500 11.500px var(--mono);color:var(--mute);margin:0 0 14px;min-height:17px}
+.hint.ok{color:#0b7a4a}.hint.ok:before{content:"✓ "}.hint.warn{color:#b45309}
+.spec{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.spec div{background:#0d1826;color:#fff;border:1px solid #233a50;border-top:3px solid var(--green);border-radius:3px;padding:12px 12px 11px}
+.spec div:nth-child(2){border-top-color:var(--orange)}.spec div:nth-child(3){border-top-color:var(--yellow)}.spec div:nth-child(4){border-top-color:var(--cyan)}.spec div:nth-child(5){border-top-color:var(--magenta)}.spec div:nth-child(6){border-top-color:var(--violet)}
+.spec small{display:block;font:400 8.500px var(--pix);letter-spacing:1px;color:#7d94a8}
+.spec b{display:block;font:400 21px/1.3 var(--stencil);white-space:nowrap}
+.spec span{font-size:11.500px;color:#9db2c2;line-height:1.3;display:block}
+.specnote{margin:14px 0 0;font-size:13px;color:var(--mute)}
+@media (max-width:980px){.spec{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="box" viewBox="0 0 32 32"><path d="M16 3 29 9.500v13L16 29 3 22.500v-13z" fill="#c8935a"/><path d="M16 16 29 9.500v13L16 29z" fill="#8a5a2c"/><path d="M16 16 3 9.500 16 3l13 6.500z" fill="#e9bd88"/><path d="m9 6.500 13 6.500v5l-3 1.500v-5L6.200 8z" fill="#ff6a1a"/><path d="M6 14.500l5 2.500v3l-5-2.500z" fill="#fffef8"/><path d="M16 3 29 9.500v13L16 29 3 22.500v-13zM16 16v13M3 9.500 16 16l13-6.500" fill="none" stroke="#14171d" stroke-width="1.200" stroke-linejoin="round"/></symbol>
+<symbol id="i-grid" viewBox="0 0 32 32"><rect x="3" y="3" width="26" height="26" rx="2" fill="#dbe7ff" stroke="#14171d" stroke-width="1.500"/><path d="M3 12h26M3 21h26" stroke="#14171d" stroke-width="1.500"/><rect x="6" y="6" width="6" height="6" fill="#c8935a" stroke="#14171d"/><rect x="15" y="7" width="8" height="5" fill="#ff6a1a" stroke="#14171d"/><rect x="7" y="15" width="8" height="6" fill="#16b364" stroke="#14171d"/><rect x="19" y="16" width="6" height="5" fill="#ffc928" stroke="#14171d"/><rect x="11" y="24" width="9" height="5" fill="#ec4899" stroke="#14171d"/></symbol>
+<symbol id="i-label" viewBox="0 0 32 32"><path d="M4 6h17l8 10-8 10H4z" fill="#ffc928" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><circle cx="22.500" cy="16" r="2" fill="#fffef8" stroke="#14171d"/><path d="M7 11v10M9.500 11v10M11.500 11v10M14 11v10M16 11v10M18 11v10" stroke="#14171d" stroke-width="1.300"/></symbol>
+<symbol id="i-env" viewBox="0 0 32 32"><rect x="3" y="7" width="26" height="19" rx="2" fill="#fffef8" stroke="#14171d" stroke-width="1.500"/><path d="M3 9l13 10L29 9" fill="none" stroke="#14171d" stroke-width="1.500"/><circle cx="16" cy="19.500" r="4.500" fill="#ec4899" stroke="#14171d" stroke-width="1.300"/><path d="M14 19.500l1.500 1.500 2.700-3" fill="none" stroke="#fff" stroke-width="1.500"/></symbol>
+<symbol id="i-check" viewBox="0 0 32 32"><rect x="6" y="5" width="20" height="24" rx="2" fill="#e0f7ea" stroke="#14171d" stroke-width="1.500"/><rect x="11" y="3" width="10" height="5" rx="1.500" fill="#c8935a" stroke="#14171d" stroke-width="1.300"/><path d="M10.500 17.500l4 4 7.500-8.500" fill="none" stroke="#16b364" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-shield" viewBox="0 0 32 32"><path d="M16 3l11 4v8c0 7-4.500 11.500-11 14C9.500 26.500 5 22 5 15V7z" fill="#2563ff" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><path d="M16 3v26c6.500-2.500 11-7 11-14V7z" fill="#22d3ee" opacity=".55"/><path d="M11 15.500l3.500 3.500 6.500-7" fill="none" stroke="#fff" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-folder" viewBox="0 0 32 32"><path d="M3 8a2 2 0 0 1 2-2h7l3 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#e9bd88" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><path d="M3 13h26v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#ffc928" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><rect x="18" y="17" width="8" height="6" fill="#7c5cff" stroke="#14171d"/></symbol>
+<symbol id="i-book" viewBox="0 0 32 32"><path d="M4 6c4-1.500 8-1.500 12 1v20c-4-2.500-8-2.500-12-1z" fill="#22d3ee" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><path d="M28 6c-4-1.500-8-1.500-12 1v20c4-2.500 8-2.500 12-1z" fill="#fffef8" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><path d="M19 12c2-.800 4-.900 6-.500M19 16c2-.800 4-.900 6-.500M19 20c2-.800 4-.900 6-.500" fill="none" stroke="#14171d" stroke-width="1.200"/></symbol>
+<symbol id="i-scale" viewBox="0 0 32 32"><path d="M16 5v21M9 27h14" stroke="#14171d" stroke-width="2" stroke-linecap="round"/><path d="M5 9h22" stroke="#14171d" stroke-width="2" stroke-linecap="round"/><path d="M5 9l-3 9h6zM27 9l-3 9h6z" fill="#ffc928" stroke="#14171d" stroke-width="1.300" stroke-linejoin="round"/><path d="M2 18a3 3 0 0 0 6 0zM24 18a3 3 0 0 0 6 0z" fill="#ff6a1a" stroke="#14171d" stroke-width="1.300"/><circle cx="16" cy="6" r="2.500" fill="#ff6a1a" stroke="#14171d"/></symbol>
+<symbol id="i-pen" viewBox="0 0 32 32"><path d="M4 26c3-5 5 3 8-1s4 2 6 0" fill="none" stroke="#2563ff" stroke-width="2" stroke-linecap="round"/><path d="M21 5l6 6-11 11-7 1 1-7z" fill="#ffc928" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><path d="M19 7l6 6" stroke="#14171d" stroke-width="1.500"/><path d="M9 23l1-7 6 6z" fill="#14171d"/></symbol>
+<symbol id="i-lock" viewBox="0 0 32 32"><path d="M10 14V10a6 6 0 0 1 12 0" fill="none" stroke="#14171d" stroke-width="2.500" stroke-linecap="round"/><rect x="6" y="14" width="20" height="14" rx="2.500" fill="#16b364" stroke="#14171d" stroke-width="1.500"/><circle cx="16" cy="20" r="2.300" fill="#fffef8" stroke="#14171d"/><path d="M16 22v3" stroke="#14171d" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="i-scan" viewBox="0 0 32 32"><path d="M4 10V5h5M28 10V5h-5M4 22v5h5M28 22v5h-5" fill="none" stroke="#14171d" stroke-width="2" stroke-linecap="round"/><rect x="9" y="10" width="14" height="12" fill="#c8935a" stroke="#14171d" stroke-width="1.300"/><path d="M3 16h26" stroke="#22d3ee" stroke-width="2.500" stroke-linecap="round"/></symbol>
+<symbol id="i-truck" viewBox="0 0 32 32"><rect x="2" y="8" width="17" height="13" rx="1.500" fill="#16b364" stroke="#14171d" stroke-width="1.500"/><path d="M19 12h6l5 5v4H19z" fill="#fffef8" stroke="#14171d" stroke-width="1.500" stroke-linejoin="round"/><circle cx="9" cy="23" r="3" fill="#14171d"/><circle cx="24" cy="23" r="3" fill="#14171d"/><circle cx="9" cy="23" r="1" fill="#fff"/><circle cx="24" cy="23" r="1" fill="#fff"/><path d="M6.500 14.500l3 3 5-5.500" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="i-x" viewBox="0 0 32 32"><rect x="3" y="3" width="26" height="26" rx="5" fill="#14171d"/><path d="M9 9l14 14M23 9L9 23" stroke="#fff" stroke-width="3" stroke-linecap="round"/></symbol>
+<symbol id="i-pill" viewBox="0 0 32 32"><g transform="rotate(-35 16 16)"><rect x="3" y="10" width="26" height="12" rx="6" fill="#fffef8" stroke="#14171d" stroke-width="1.500"/><path d="M16 10h7a6 6 0 0 1 0 12h-7z" fill="#16b364" stroke="#14171d" stroke-width="1.500"/></g></symbol>
+</defs></svg>
+<div class="boot" id="boot"><div><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><h2>Package<sup>OS</sup></h2><p>OPENING DOCK-01</p><div class="pb"><i></i></div></div></div>
+
+<div class="strip"><span class="dot"></span><b>Solana mainnet</b> · Wallet-to-wallet settlement. Both sides sign. <a href="#trust">Details</a></div>
+<header class="menubar"><div class="wrap">
+  <a class="brand" href="#home"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg>Package</a>
+  <nav class="nav" id="nav" aria-label="Main"><a href="#markets" data-r="markets">Markets</a><a href="#private" data-r="private">Private deals</a><a href="#deals" data-r="deals">Deals</a><a href="#trust" data-r="trust">Trust</a><a href="#portfolio" data-r="portfolio">Portfolio</a><a href="#docs" data-r="docs">Docs</a></nav>
+  <span class="chip hide-s"><i></i>Solana</span>
+  <button class="btn" id="walletBtn" type="button">Connect wallet</button>
+  <a class="btn pri hide-s" href="#offer">Make offer →</a>
+</div></header>
+
+<nav class="desk" aria-label="Desktop shortcuts"><a href="#home"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg>Dock home</a><a href="#markets"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-grid"/></svg>Markets</a><a href="#offer"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg>Post an offer</a><a href="#private"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-env"/></svg>Private deals</a><a href="#deals"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-check"/></svg>Settled deals</a><a href="#portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-folder"/></svg>Portfolio</a></nav>
+
+<main class="wrap">
+<section class="view" id="v-home">
+<div class="win">
+<div class="tb tb-dark"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><span class="t">package.exe<em> — DOCK-01 · Solana OTC desk</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="hero">
+  <div class="hero-l">
+    <div class="eyebrow">SOLANA OTC DOCK · WALLET TO WALLET</div>
+    <div class="tick"><b id="tickerTxt">$Package</b><span class="ca" id="caBox"></span><a id="pumpLink" href="https://pump.fun/" target="_blank" rel="noopener">pump.fun ↗</a></div>
+    <h1 class="word"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><span>Package</span></h1>
+    <p class="tagline">Ship the whole bag <em>/ at one sealed price</em></p>
+    <div class="stats">
+      <div class="stat" style="--c:var(--orange)"><small>PUBLIC VOLUME</small><b id="stVol">0 SOL</b></div>
+      <div class="stat" style="--c:var(--yellow)"><small>OPEN OFFERS</small><b id="stOpen">0</b></div>
+      <div class="stat" style="--c:var(--green)"><small>SETTLED DEALS</small><b id="stDeals">0</b></div>
+      <div class="stat" style="--c:var(--cyan)"><small>SETTLES ON</small><b>Solana</b></div>
+    </div>
+    <div class="cta"><a class="btn lg pri" href="#offer">Post an offer →</a><a class="btn lg ghost" href="#markets">Browse offers →</a></div>
+    <div class="quick"><a href="#private">Private deals</a><a href="#docs">Docs</a><a href="#deals">Deals</a><a href="#trust">Trust</a><a href="#portfolio">Portfolio</a></div>
+    <div class="read">Read <span class="readAt"></span></div>
+  </div>
+  <div class="scene" aria-hidden="true"><svg id="iso" viewBox="22 14 616 446" preserveAspectRatio="xMidYMid meet"></svg></div>
+</div>
+<div class="hazard"></div>
+<div class="sb"><span>Dock online · belt running</span><span>Solana mainnet</span><span>No custody</span></div>
+</div>
+<div class="banner"><span><b>Holding a big bag?</b> Put one price on the whole lot and trade it straight for SOL. The price doesn't move while you exit.</span><a href="#docs">How it works →</a></div>
+<div class="conv" aria-hidden="true"><i style="--k:#c8935a;--t:#ff6a1a;--w:42px;--h:30px;animation-delay:-0s"></i><i style="--k:#e9bd88;--t:#2563ff;--w:32px;--h:24px;animation-delay:-2.75s"></i><i style="--k:#8a5a2c;--t:#ffc928;--w:48px;--h:34px;animation-delay:-5.5s"></i><i style="--k:#c8935a;--t:#ec4899;--w:36px;--h:26px;animation-delay:-8.25s"></i><i style="--k:#e9bd88;--t:#16b364;--w:44px;--h:30px;animation-delay:-11s"></i><i style="--k:#c8935a;--t:#22d3ee;--w:34px;--h:26px;animation-delay:-13.75s"></i><i style="--k:#8a5a2c;--t:#ff6a1a;--w:40px;--h:32px;animation-delay:-16.5s"></i><i style="--k:#e9bd88;--t:#7c5cff;--w:38px;--h:26px;animation-delay:-19.25s"></i></div>
+<div class="win">
+<div class="tb tb-blue"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-folder"/></svg><span class="t">My Dock<em> — shortcuts</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="short"><a href="#markets"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-grid"/></svg><span>Order book<small>order_book.xls</small></span></a><a href="#offer"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg><span>Post an offer<small>packing_slip.frm</small></span></a><a href="#private"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-env"/></svg><span>Private deals<small>courier.hlp</small></span></a><a href="#deals"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-check"/></svg><span>Settled deals<small>delivered.log</small></span></a><a href="#trust"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-shield"/></svg><span>Trust<small>settlement.hlp</small></span></a><a href="#portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-folder"/></svg><span>Portfolio<small>my_lots.xls</small></span></a></div></div>
+<div class="sb"><span>6 objects</span><span>C:\PACKAGE</span><span>Solana mainnet</span></div>
+</div>
+<div class="win">
+<div class="tb tb-orange"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-scale"/></svg><span class="t">why_direct.txt<em> — Why a direct deal</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="sh"><span class="num">01</span><h2>Why a direct deal</h2></div><div class="grid3"><div class="card" style="--sh:var(--orange)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-scale"/></svg></div><span class="tag o">No slippage</span><h3>One price for the lot</h3><p>Dumping a big bag into a pool drags the price down with every chunk. Here the buyer pays the exact total on your label.</p></div><div class="card" style="--sh:var(--blue)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-pen"/></svg></div><span class="tag b">Both sign</span><h3>Settles in one transaction</h3><p>Tokens and SOL cross in a single transaction signed by both wallets. Both legs land together or nothing moves.</p></div><div class="card" style="--sh:var(--green)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-lock"/></svg></div><span class="tag g">No custody</span><h3>Nothing sits with us</h3><p>Posting an offer moves nothing. Your tokens stay in your own wallet right up to settlement.</p></div></div></div>
+<div class="sb"><span>3 reasons</span><span>Read-only</span><span>Solana mainnet</span></div>
+</div>
+<div class="win">
+<div class="tb tb-cyan"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-truck"/></svg><span class="t">dock_flow.bat<em> — From label to delivery</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="sh"><span class="num">02</span><h2>Dock flow</h2></div><div class="flow">
+<div style="--c:var(--orange)"><span class="st"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><b>01</b></span><h3>Pack</h3><p>Pick the mint, the quantity and one total price in SOL.</p></div>
+<div style="--c:var(--magenta)"><span class="st"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg><b>02</b></span><h3>Label</h3><p>Sign the terms with your wallet. That's a message, not a transfer.</p></div>
+<div style="--c:var(--blue)"><span class="st"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-scan"/></svg><b>03</b></span><h3>Scan</h3><p>The taker reviews the lot against live market price before signing.</p></div>
+<div style="--c:var(--green)"><span class="st"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-truck"/></svg><b>04</b></span><h3>Deliver</h3><p>One atomic swap. Tokens one way, SOL the other.</p></div></div></div>
+<div class="sb"><span>4 stations</span><span>Belt running</span><span>Atomic settlement</span></div>
+</div>
+<div class="win">
+<div class="tb tb-green"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-pill"/></svg><span class="t">launch_spec.ini<em> — How $Package launches</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="sh"><span class="num">03</span><h2>$Package launch spec</h2><span class="count">pump.fun standard</span></div>
+<div class="spec">
+<div><small>LAUNCHPAD</small><b>pump.fun</b><span>Fair launch on the bonding curve</span></div>
+<div><small>TOTAL SUPPLY</small><b>1,000,000,000</b><span>Fixed at creation</span></div>
+<div><small>DECIMALS</small><b>6</b><span>pump.fun standard</span></div>
+<div><small>ON THE CURVE</small><b>~793M</b><span>Sold by formula, no presale</span></div>
+<div><small>GRADUATION</small><b>~85 SOL</b><span>Then trades on PumpSwap</span></div>
+<div><small>CURVE FEE</small><b>1.25%</b><span>Set by pump.fun, not Package</span></div>
+</div>
+<p class="specnote">Values are pump.fun's published defaults for every coin it launches and can be changed by pump.fun. Package itself adds no fee and no tax. <a id="pumpLink4" href="https://pump.fun/" target="_blank" rel="noopener">View on pump.fun ↗</a></p></div>
+<div class="sb"><span>6 values</span><span>pump.fun</span><span>Solana mainnet</span></div>
+</div>
+<div class="win">
+<div class="tb tb-pink"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-scale"/></svg><span class="t">slippage_scale.exe<em> — Weigh a market sell</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="sh"><span class="num">04</span><h2>Slippage scale</h2><div class="tabs" id="slMode" style="margin-left:auto"><button class="on" data-m="pool" type="button">Graduated · PumpSwap pool</button><button data-m="curve" type="button">On the bonding curve</button></div></div>
+<p id="slNote" style="margin:-6px 0 14px;color:var(--mute);font-size:13px">Constant-product estimate from your own numbers. Pool fees excluded.</p>
+<div class="grid2"><div>
+<div id="slPool"><label class="f"><span>Your bag's value at spot price (SOL)</span><input class="in" id="slV" inputmode="decimal" placeholder="0.00"></label>
+<label class="f"><span>SOL sitting in the pool (pool's SOL side)</span><input class="in" id="slL" inputmode="decimal" placeholder="0.00"></label>
+<p style="font-size:13px;color:var(--mute);margin:0">Need the pool depth? Look the token up under <a href="#markets">Markets → Find your token</a>.</p></div>
+<div id="slCurve" hidden><label class="f"><span>Tokens you would sell</span><input class="in" id="scTok" inputmode="decimal" placeholder="0"></label>
+<label class="f"><span>SOL raised on the curve so far (0 to 85)</span><input class="in" id="scSol" inputmode="decimal" placeholder="0.00"></label>
+<p style="font-size:13px;color:var(--mute);margin:0">A curve sell can never return more SOL than buyers have put in.</p></div>
+</div><div>
+<div class="ml">Market sell receives</div><div class="meter"><i id="slBarM" style="width:0;background-color:var(--red)"></i><span id="slOutM">–</span></div>
+<div class="ml">Fixed-price lot receives</div><div class="meter"><i id="slBarF" style="width:0;background-color:var(--green)"></i><span id="slOutF">–</span></div>
+<div class="kv" style="padding:9px 0"><span>Estimated price impact</span><b id="slImp">–</b></div>
+<div class="kv" style="padding:9px 0;border:0"><span>Left on the dock floor</span><b id="slLoss">–</b></div>
+</div></div></div>
+<div class="sb"><span>Calculator</span><span>Your inputs only</span><span>Estimate</span></div>
+</div>
+</section><section class="view" id="v-markets">
+<div class="vh"><div><span class="tag ">Markets</span><h1>The loading dock</h1><p>Every open lot, sealed at one price. Take the whole thing or leave it on the shelf.</p></div><span class="crumb">C:\PACKAGE\MARKETS</span></div>
+<div class="win">
+<div class="tb tb-blue"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-grid"/></svg><span class="t">order_book.xls<em> — Open lots</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb flush"><div class="pad"><div class="sh"><span class="num">01</span><h2>Order book</h2><span class="count" id="obCount">0 loaded</span></div></div>
+<div class="tools"><input class="in" id="obSearch" placeholder="Search token or mint" aria-label="Search token or mint"><span class="chip"><i></i>Solana</span><input class="in" id="obMin" inputmode="decimal" placeholder="Min size, SOL" aria-label="Minimum size in SOL">
+<div class="tabs" id="obTabs"><button class="on" data-s="all" type="button">All</button><button data-s="ask" type="button">Asks</button><button data-s="bid" type="button">Bids</button></div></div>
+<div class="tw" id="obBody"></div></div>
+<div class="sb"><span>Read <span class="readAt"></span></span><span>Solana mainnet</span><span>Full lot only</span></div>
+</div>
+<div class="grid2">
+<div class="win">
+<div class="tb tb-green"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-check"/></svg><span class="t">recent_deals.log</span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb flush"><div class="pad"><div class="sh"><span class="num">02</span><h2>Recent deals</h2><a class="r" href="#deals">All deals</a></div></div><div class="rows" id="recentDeals"></div></div>
+<div class="sb"><span>Newest first</span><span>Solana mainnet</span><span>On-chain</span></div>
+</div>
+<div class="win">
+<div class="tb tb-orange"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-truck"/></svg><span class="t">routes.cfg<em> — Settlement routes</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb flush"><div class="pad"><div class="sh"><span class="num">03</span><h2>Settlement routes</h2><a class="r" href="#trust">Route details</a></div></div>
+<div class="kv"><span><b style="color:var(--ink)">Solana</b><br>One atomic transaction. Both wallets sign it.</span><b style="color:var(--blue)">Token → SOL</b></div>
+<div class="kv"><span>Cross-chain settlement</span><b>Not available</b></div><div class="kv"><span>Operator custody</span><b>None</b></div><div class="kv"><span>pump.fun coins</span><b>On the curve and graduated</b></div><div class="kv" style="border:0"><span>Partial fills</span><b>Not supported</b></div></div>
+<div class="sb"><span>1 route</span><span>Solana → Solana</span><span>No custody</span></div>
+</div>
+</div>
+<div class="win">
+<div class="tb tb-pink"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-scan"/></svg><span class="t">scanner.exe<em> — Find your token</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="sh"><span class="num">04</span><h2>Find your token</h2></div>
+<p style="margin:0 0 12px;color:var(--mute)">Paste a Solana mint to scan its live pool before you prepare an offer.</p>
+<form id="scanForm" style="display:flex;gap:8px;flex-wrap:wrap"><input class="in" id="scanMint" placeholder="Paste the Solana mint address" style="flex:1 1 320px" aria-label="Mint address"><button class="btn blue" type="submit">Scan mint</button></form>
+<div id="scanOut" style="margin-top:14px"></div></div>
+<div class="sb"><span>Scanner idle</span><span>Live pool data</span><span>By mint</span></div>
+</div>
+</section><section class="view" id="v-offer">
+<div class="vh"><div><span class="tag o">New lot</span><h1>Post an offer</h1><p>Your price, your counterparty. Posting an offer moves nothing.</p></div><span class="crumb">C:\PACKAGE\OFFER</span></div>
+<div class="grid2" style="grid-template-columns:minmax(0,1.250fr) minmax(0,.750fr);align-items:start" id="offerGrid">
+<div class="win">
+<div class="tb tb-orange"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg><span class="t">packing_slip.frm<em> — New lot</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><form id="offerForm" novalidate>
+<div class="grid2"><label class="f"><span>Side</span><select class="in" id="oSide"><option value="ask">Sell tokens for SOL</option><option value="bid">Buy tokens with SOL</option></select></label>
+<label class="f"><span>Visibility</span><select class="in" id="oVis"><option value="public">Public order book</option><option value="private">Private link</option></select></label></div>
+<label class="f" style="margin-bottom:4px"><span>Token mint</span><input class="in" id="oMint" placeholder="Paste the Solana mint address" autocomplete="off"></label><div class="hint" id="oHint"></div>
+<div class="grid2"><label class="f"><span>Token quantity</span><input class="in" id="oQty" inputmode="decimal" placeholder="0.00"></label>
+<label class="f"><span>Total price in SOL</span><input class="in" id="oTotal" inputmode="decimal" placeholder="0.00"></label></div>
+<label class="f"><span>Offer duration</span><select class="in" id="oDur"><option value="1">1 hour</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select></label>
+<div class="note"><b>Solana mainnet · full lot only</b>Posting creates an offer, not a transfer. Your wallet signs a plain message with the terms; both wallets review and sign the swap later.</div>
+<div class="err" id="oErr" role="alert"></div>
+<button class="btn pri lg block" type="submit" id="oSubmit">Verify wallet and post offer</button></form></div>
+<div class="sb"><span>Draft</span><span>Message signature only</span><span>Nothing moves</span></div>
+</div>
+<div class="win">
+<div class="tb tb-kraft"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><span class="t">label_preview.bmp<em> — Your offer, at a glance</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div id="glance"></div></div>
+<div class="sb"><span>Live preview</span><span>100%</span><span>PKG</span></div>
+</div>
+</div></section><section class="view" id="v-private">
+<div class="vh"><div><span class="tag m">Off the book</span><h1>Private deals</h1><p>Agree the price somewhere else, then seal it here. A private lot never shows on the public book. Only the person holding the link can open it.</p></div><span class="crumb">C:\PACKAGE\PRIVATE</span></div>
+<div class="win">
+<div class="tb tb-pink"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-env"/></svg><span class="t">private_courier.hlp<em> — How a private lot travels</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="grid3"><div class="card" style="--sh:var(--magenta)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg></div><span class="tag m">01</span><h3>Set the terms</h3><p>Pick the token, the size and one total price.</p></div><div class="card" style="--sh:var(--violet)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-env"/></svg></div><span class="tag v">02</span><h3>Share the link</h3><p>The terms and your signature travel inside the link itself. Send it to your counterparty.</p></div><div class="card" style="--sh:var(--cyan)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-pen"/></svg></div><span class="tag c">03</span><h3>Both sign</h3><p>They check the lot against the live market and sign. You sign. One transaction settles it.</p></div></div><p style="margin:20px 0 0"><a class="btn pri lg" href="#offer" id="privCta">Create a private offer →</a></p></div>
+<div class="sb"><span>3 steps</span><span>Hidden from the book</span><span>Link only</span></div>
+</div>
+<div class="win">
+<div class="tb tb-blue"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-scan"/></svg><span class="t">open_link.exe<em> — Received a link?</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><form id="openForm" style="display:flex;gap:8px;flex-wrap:wrap"><input class="in" id="openLink" placeholder="Paste a Package private link" style="flex:1 1 320px" aria-label="Private link"><button class="btn blue" type="submit">Open lot</button></form></div>
+<div class="sb"><span>Waiting for a link</span><span>Verifies maker signature</span><span>Read-only</span></div>
+</div>
+</section><section class="view" id="v-lot">
+<div class="vh"><div><span class="tag c">Sealed lot</span><h1>Inspect the package</h1><p>Check every line on the label before you sign anything.</p></div><span class="crumb">C:\PACKAGE\LOT</span></div>
+<div class="grid2" style="align-items:start">
+<div class="win">
+<div class="tb tb-kraft"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><span class="t">manifest.lbl</span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div id="lotLabel"></div></div>
+<div class="sb"><span>Sealed by maker</span><span>Signed terms</span><span>PKG</span></div>
+</div>
+<div class="win">
+<div class="tb tb-green"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-shield"/></svg><span class="t">inspection.log</span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb flush"><div id="lotChecks"></div></div>
+<div class="sb"><span>Inspection</span><span>Live market check</span><span>Solana mainnet</span></div>
+</div>
+</div></section><section class="view" id="v-deals">
+<div class="vh"><div><span class="tag g">Deals</span><h1>Settled deals</h1><p>Lots that crossed the dock, newest first. Each row links to its transaction.</p></div><span class="crumb">C:\PACKAGE\DEALS</span></div>
+<div class="win">
+<div class="tb tb-green"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-check"/></svg><span class="t">delivered.log</span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb flush"><div class="pad"><div class="sh"><h2>Delivered</h2><span class="count" id="dealCount">0</span></div></div><div class="rows" id="allDeals"></div></div>
+<div class="sb"><span>Newest first</span><span>Solana mainnet</span><span>On-chain</span></div>
+</div>
+</section><section class="view" id="v-trust">
+<div class="vh"><div><span class="tag b">Trust</span><h1>How settlement works</h1><p>What happens when a lot changes hands, and where Package's reach ends.</p></div><span class="crumb">C:\PACKAGE\TRUST</span></div>
+<div class="win">
+<div class="tb tb-blue"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-shield"/></svg><span class="t">settlement.hlp<em> — The six rules of the dock</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="grid3"><div class="card" style="--sh:var(--blue)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-truck"/></svg></div><span class="tag b">Atomic</span><h3>One transaction</h3><p>Tokens travel one direction and SOL the other inside the same transaction. If one leg fails, the whole thing reverts.</p></div><div class="card" style="--sh:var(--magenta)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-pen"/></svg></div><span class="tag m">Signatures</span><h3>Both sides sign</h3><p>Buyer and seller approve the identical transaction, after each wallet shows a simulation of the outcome.</p></div><div class="card" style="--sh:var(--green)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-lock"/></svg></div><span class="tag g">Custody</span><h3>No operator funds</h3><p>Package never takes hold of tokens or SOL and never requests a spending allowance.</p></div><div class="card" style="--sh:var(--orange)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg></div><span class="tag o">Offers</span><h3>Offers are not transfers</h3><p>An offer is published terms plus a signed message. Your balance is untouched until you sign the swap.</p></div><div class="card" style="--sh:var(--yellow)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-scale"/></svg></div><span class="tag ">Fees</span><h3>No platform fee</h3><p>The taker covers the Solana network fee and any token-account rent. Nothing else is added.</p></div><div class="card" style="--sh:var(--violet)"><div class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg></div><span class="tag v">Limits</span><h3>Full lot only</h3><p>A lot is taken whole. There are no partial fills and no price changes after posting.</p></div></div></div>
+<div class="sb"><span>6 rules</span><span>Solana mainnet</span><span>No custody</span></div>
+</div>
+<div class="win">
+<div class="tb tb-orange"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-check"/></svg><span class="t">pre_sign_checklist.chk<em> — Before you sign</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="sh"><h2>Before you sign</h2><span class="count" id="chkCount">0 / 5</span></div><div class="check" id="check">
+<label><input type="checkbox"><span>The <b>mint address</b> on the label matches the token I mean, character for character.</span></label>
+<label><input type="checkbox"><span>The <b>quantity and total</b> match what we agreed.</span></label>
+<label><input type="checkbox"><span>I compared the per-token price with the <b>live market</b> reading.</span></label>
+<label><input type="checkbox"><span>My wallet's <b>simulation</b> shows exactly one token leg and one SOL leg.</span></label>
+<label><input type="checkbox"><span>The lot <b>hasn't expired</b> and the maker's signature checks out.</span></label></div></div>
+<div class="sb"><span>Checklist</span><span>5 items</span><span>Yours to tick</span></div>
+</div>
+</section><section class="view" id="v-portfolio">
+<div class="vh"><div><span class="tag v">Portfolio</span><h1>Your manifests</h1><p>Offers you posted and deals you settled.</p></div><span class="crumb">C:\PACKAGE\PORTFOLIO</span></div>
+<div class="win">
+<div class="tb tb-pink"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-folder"/></svg><span class="t">my_lots.xls</span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb flush"><div id="portBody"></div></div>
+<div class="sb"><span>Wallet view</span><span>Solana mainnet</span><span>Private to you</span></div>
+</div>
+</section><section class="view" id="v-docs">
+<div class="vh"><div><span class="tag c">Docs</span><h1>Docs</h1><p>Package in nine short answers.</p></div><span class="crumb">C:\PACKAGE\DOCS</span></div>
+<div class="win">
+<div class="tb tb-blue"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-book"/></svg><span class="t">readme.hlp<em> — Package help</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><details open><summary>What is Package?</summary><p>An OTC dock for Solana tokens. A holder puts a whole bag up as one lot with one total price in SOL, and a single buyer takes all of it in a wallet-to-wallet swap.</p></details><details><summary>Why not just market-sell?</summary><p>A pool reprices against you as you sell, so a large bag earns less on every chunk and the chart takes the hit. A fixed-price lot pays the full total you set and never touches the pool.</p></details><details><summary>Who can take my offer?</summary><p>A public lot can be taken by any wallet that pays the full total. A private lot is only reachable through its link, so only whoever you send it to can open and take it.</p></details><details><summary>What does it cost?</summary><p>Package charges no platform fee. The taker pays the normal Solana network fee and, if they've never held the token, the rent for a new token account.</p></details><details><summary>What am I signing when I post?</summary><p>A plain text message listing your terms. It proves the offer came from your wallet. It is not a transaction and gives nobody permission to move funds.</p></details><details><summary>What happens when an offer expires?</summary><p>It drops off the book and can no longer be taken. Nothing needs to be returned, because nothing ever left your wallet.</p></details><details><summary>Does Package work with pump.fun coins?</summary><p>Yes. It is built around them. Paste any mint ending in "pump" and Package applies pump.fun's fixed 1,000,000,000 supply and 6 decimals, shows the lot as a share of supply, and tells you whether the coin is still on the bonding curve or has graduated to PumpSwap.</p></details><details><summary>How does $Package itself launch?</summary><p>On pump.fun, the standard way: 1,000,000,000 supply, 6 decimals, sold from the bonding curve with no presale and no team allocation, graduating to PumpSwap once the curve fills at roughly 85 SOL. The contract address is posted on X at launch.</p></details><details><summary>Can I change the price later?</summary><p>No. The terms are sealed by your signature. Cancel the lot from Portfolio and post a fresh one.</p></details></div>
+<div class="sb"><span>9 topics</span><span>Help</span><span>Read-only</span></div>
+</div>
+<div class="win">
+<div class="tb tb-kraft"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg><span class="t">glossary.txt<em> — Dock vocabulary</em></span><span class="x" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+<div class="wb"><div class="gloss"><div><b>LOT</b>A full bag of one token offered as a single unit.</div><div><b>ASK</b>A maker selling tokens for SOL.</div><div><b>BID</b>A maker buying tokens with SOL.</div>
+<div><b>LABEL</b>The signed terms: mint, quantity, total, expiry.</div><div><b>VS MARKET</b>Lot price per token compared with the live pool price.</div><div><b>ATOMIC</b>Both legs settle in one transaction or neither does.</div><div><b>BONDING CURVE</b>pump.fun's formula that prices a coin before it graduates.</div><div><b>GRADUATION</b>The curve sells out and the coin moves to a PumpSwap pool.</div><div><b>PUMP MINT</b>A pump.fun coin address. It always ends in "pump".</div></div></div>
+<div class="sb"><span>9 terms</span><span>Glossary</span><span>Read-only</span></div>
+</div>
+</section>
+<footer>
+<div class="foot">
+  <div><a class="brand" href="#home"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg>Package</a><p>An OTC dock for Solana tokens. One lot, one price, one transaction, signed by both wallets.</p></div>
+  <div><h4>THE DOCK</h4><a href="#markets">Order book</a><a href="#offer">Post an offer</a><a href="#private">Private deals</a><a href="#deals">Settled deals</a></div>
+  <div><h4>HELP</h4><a href="#docs">Docs</a><a href="#trust">Trust</a><a href="#portfolio">Portfolio</a></div>
+  <div><h4>FOLLOW</h4><a id="xLink" href="https://x.com/UsePackage" target="_blank" rel="noopener">X · @UsePackage ↗</a><a id="pumpLink3" href="https://pump.fun/" target="_blank" rel="noopener">pump.fun ↗</a></div>
+</div>
+<div class="legal"><span>© Package · <span id="tickerFoot">$Package</span> · Settles on Solana</span><span>Not investment advice.</span></div>
+</footer>
+</main>
+
+<div class="smenu" id="smenu">
+  <header><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><span>Package<small id="smWallet">no wallet connected</small></span></header>
+  <nav aria-label="Start menu"><a href="#home"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg>Dock home</a><a href="#markets"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-grid"/></svg>Markets</a><a href="#offer"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-label"/></svg>Post an offer</a><a href="#private"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-env"/></svg>Private deals</a><a href="#deals"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-check"/></svg>Settled deals</a><a href="#portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-folder"/></svg>Portfolio</a><a href="#trust"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-shield"/></svg>Trust</a><a href="#docs"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-book"/></svg>Docs</a><hr>
+  <a id="xLink2" href="https://x.com/UsePackage" target="_blank" rel="noopener"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-x"/></svg>X</a><a id="pumpLink2" href="https://pump.fun/" target="_blank" rel="noopener"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-pill"/></svg>pump.fun</a></nav>
+  <footer><span>Solana mainnet</span><span>No custody</span></footer>
+</div>
+<div class="taskbar">
+  <button class="start" id="startBtn" type="button" aria-expanded="false" aria-controls="smenu"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg>start</button>
+  <span class="task"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><span id="taskTitle">package.exe</span></span>
+  <div class="tray"><span id="trayWallet">no wallet</span><span id="clock">--:--:-- UTC</span></div>
+</div>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true"><div class="win"><div class="tb tb-blue"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#box"/></svg><span class="t" id="ovTitle">Dialog</span><span class="x"><i id="ovClose" role="button" tabindex="0" aria-label="Close">×</i></span></div><div class="wb" id="ovBody"></div></div></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   PACKAGE — config. Fill these in before launch.
+   ============================================================ */
+const CFG = {
+  TICKER: '$Package',
+  CA: '',                                   // contract address (pump.fun mints end in "pump"); leave '' until launch
+  X_URL: 'https://x.com/UsePackage',                  // project X account
+  PUMP_URL: 'https://pump.fun/',            // leave as is: becomes pump.fun/coin/<CA> once CA is set
+  PRICE_API: 'https://api.dexscreener.com/latest/dex/tokens/', // live pool data for scans
+};
+/* ------------------------------------------------------------
+   DATA ADAPTER. Offers are kept in this browser (localStorage).
+   Swap the four Store functions for calls to your own API to
+   share one order book between all visitors.
+   SETTLEMENT. settleLot() is the single hook where your on-chain
+   swap program gets called. Until it's wired, lots can't settle.
+   ------------------------------------------------------------ */
+const Store = {
+  _g(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]') }catch(e){ return this['_m'+k]||[] } },
+  _s(k,v){ this['_m'+k]=v; try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} },
+  offers(){ return this._g('pkg.offers.v1') },
+  saveOffers(v){ this._s('pkg.offers.v1',v) },
+  deals(){ return this._g('pkg.deals.v1') },
+  saveDeals(v){ this._s('pkg.deals.v1',v) },
+};
+/* pump.fun launch defaults (per pump.fun's program docs; its admin key can change them) */
+const PUMP={SUPPLY:1e9,DEC:6,CURVE:793.1e6,VSOL:30,VTOK:1.073e9,GRAD:85,FEE:.0125};
+const isPump=m=>/pump$/.test(m||'');
+async function settleLot(offer){
+  throw new Error('Settlement router is not connected on this deployment yet.');
+}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const B58='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const isMint=s=>/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s||'');
+const short=s=>s?s.slice(0,6)+'…'+s.slice(-6):'';
+const num=v=>{const n=parseFloat(String(v).replace(/,/g,''));return isFinite(n)&&n>0?n:0};
+function fAmt(n){ if(n>=1e9)return (n/1e9).toFixed(2)+'B'; if(n>=1e6)return (n/1e6).toFixed(2)+'M'; if(n>=1e3)return (n/1e3).toFixed(2)+'K'; return (+n.toFixed(2)).toString() }
+function fSol(n){ return n.toLocaleString('en-US',{maximumFractionDigits:n<1?4:2}) }
+function fPx(n){ if(!n)return '-'; if(n>=0.001)return (+n.toPrecision(4)).toString();
+  const e=Math.floor(Math.log10(n)), z=-e-1, d=Math.round(n/Math.pow(10,e-2)).toString().slice(0,3);
+  return '0.0'+String(z).split('').map(c=>'₀₁₂₃₄₅₆₇₈₉'[c]).join('')+d }
+function ago(t){ const s=Math.max(0,(Date.now()-t)/1000|0); if(s<60)return s+'s ago'; if(s<3600)return (s/60|0)+'m ago'; if(s<86400)return (s/3600|0)+'h ago'; return (s/86400|0)+'d ago' }
+function left(t){ const s=(t-Date.now())/1000; if(s<=0)return 'expired'; if(s<3600)return Math.ceil(s/60)+'m'; return Math.ceil(s/3600)+'h' }
+function hue(s){ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))>>>0; return ['#ff6a1a','#2f5bff','#e83e8c','#1fb866','#7a5cff','#0fa3a3','#c8935a','#e5484d'][h%8] }
+function avatar(o){ const l=esc((o.sym||'?').slice(0,2).toUpperCase());
+  const fb=`<span class="av" style="background:${hue(o.mint||'x')}">${l}</span>`;
+  if(o.img&&/^https:\/\//.test(o.img)) return `<img class="av" src="${esc(o.img)}" alt="" onerror="this.outerHTML=this.dataset.fb" data-fb="${esc(fb)}">`;
+  return fb }
+function toast(msg,c){ const d=document.createElement('div'); d.className='toast'; if(c)d.style.setProperty('--c',c); d.textContent=msg; $('#toasts').append(d); setTimeout(()=>d.remove(),4200) }
+async function copy(t,ok){ try{ await navigator.clipboard.writeText(t); toast(ok||'Copied') }catch(e){ modal('Copy this',`<input class="in" value="${esc(t)}" readonly onfocus="this.select()">`) } }
+function modal(title,html){ $('#ovTitle').textContent=title; $('#ovBody').innerHTML=html; $('#ov').classList.add('on') }
+function closeModal(){ $('#ov').classList.remove('on') }
+$('#ovClose').onclick=closeModal; $('#ov').onclick=e=>{ if(e.target.id==='ov')closeModal() };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeModal(); $('#smenu').classList.remove('on')} });
+const b64u={ enc:b=>btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),
+  dec:s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)) };
+function b58dec(s){ let n=0n; for(const c of s){ const i=B58.indexOf(c); if(i<0)throw 0; n=n*58n+BigInt(i) }
+  const out=[]; while(n>0n){ out.unshift(Number(n&255n)); n>>=8n } for(const c of s){ if(c==='1')out.unshift(0); else break } return new Uint8Array(out) }
+function barcode(seed){ let h=2166136261; const bars=[]; for(let i=0;i<64;i++){ h^=seed.charCodeAt(i%seed.length)+i; h=Math.imul(h,16777619)>>>0; bars.push(`<i style="width:${1+h%4}px;margin-right:${1+(h>>3)%3}px"></i>`) } return bars.join('') }
+
+/* ---------- live pool data (real, by mint) ---------- */
+const metaCache={};
+async function tokenMeta(mint){
+  if(metaCache[mint]) return metaCache[mint];
+  const r=await fetch(CFG.PRICE_API+mint); if(!r.ok) throw new Error('lookup failed');
+  const j=await r.json(); const ps=(j.pairs||[]).filter(p=>p.chainId==='solana'&&p.baseToken&&p.baseToken.address===mint);
+  if(!ps.length) return metaCache[mint]={mint,found:false};
+  ps.sort((a,b)=>((b.liquidity||{}).usd||0)-((a.liquidity||{}).usd||0)); const p=ps[0];
+  const solQ=p.quoteToken&&p.quoteToken.symbol==='SOL';
+  return metaCache[mint]={mint,found:true,sym:p.baseToken.symbol,name:p.baseToken.name,img:(p.info||{}).imageUrl||'',
+    usd:parseFloat(p.priceUsd)||0,sol:solQ?parseFloat(p.priceNative)||0:0,ch24:(p.priceChange||{}).h24,
+    stage:p.dexId==='pumpfun'?'curve':p.dexId==='pumpswap'?'pumpswap':'other',liqUsd:(p.liquidity||{}).usd||0,liqSol:solQ?(p.liquidity||{}).quote||0:0,dex:p.dexId,pools:ps.length,at:Date.now()};
+}
+
+/* ---------- wallet ---------- */
+let W={p:null,pk:''};
+function providers(){ const w=window, ph=(w.phantom&&w.phantom.solana)||(w.solana&&w.solana.isPhantom?w.solana:null);
+  return [{name:'Phantom',p:ph,url:'https://phantom.app/'},{name:'Solflare',p:(w.solflare&&w.solflare.isSolflare)?w.solflare:null,url:'https://solflare.com/'},{name:'Backpack',p:(w.backpack&&w.backpack.solana)||null,url:'https://backpack.app/'}] }
+function walletUI(){ $('#walletBtn').textContent=W.pk?short(W.pk):'Connect wallet'; $('#smWallet').textContent=W.pk?short(W.pk):'no wallet connected'; $('#trayWallet').textContent=W.pk?'● '+W.pk.slice(0,4)+'…'+W.pk.slice(-4):'no wallet'; render() }
+function openWallet(){
+  if(W.pk){ modal('Wallet',`<p style="margin-top:0">Connected as</p><p class="mono" style="word-break:break-all">${esc(W.pk)}</p><div style="display:flex;gap:8px"><button class="btn" id="wCopy">Copy address</button><button class="btn" id="wOff">Disconnect</button></div>`);
+    $('#wCopy').onclick=()=>copy(W.pk,'Address copied'); $('#wOff').onclick=async()=>{ try{ await W.p.disconnect() }catch(e){} W={p:null,pk:''}; closeModal(); walletUI() }; return }
+  const list=providers();
+  modal('Connect a wallet',list.map((x,i)=>`<div class="wl"><span class="av" style="background:${['#7a5cff','#ff6a1a','#e5484d'][i]}">${x.name[0]}</span><b>${x.name}</b><small>${x.p?'detected':'not installed'}</small>${x.p?`<button class="btn sm blue" data-w="${i}">Connect</button>`:`<a class="btn sm" href="${x.url}" target="_blank" rel="noopener">Get ↗</a>`}</div>`).join('')+`<p style="font-size:12px;color:var(--mute);margin-bottom:0">Connecting only shares your public address. Package never asks for a spending allowance.</p>`);
+  $$('#ovBody [data-w]').forEach(b=>b.onclick=async()=>{ const x=list[+b.dataset.w]; try{ const r=await x.p.connect(); const pk=((r&&r.publicKey)||x.p.publicKey).toString(); W={p:x.p,pk}; closeModal(); toast(x.name+' connected'); walletUI() }catch(e){ toast('Connection was declined','var(--red)') } });
+}
+$('#walletBtn').onclick=openWallet;
+
+/* ---------- offers ---------- */
+function liveOffers(){ return Store.offers().filter(o=>o.status==='open'&&o.expires>Date.now()) }
+function termsText(o){ return ['Package offer','id: '+o.id,'side: '+(o.side==='ask'?'sell tokens for SOL':'buy tokens with SOL'),'mint: '+o.mint,'quantity: '+o.qty,'total: '+o.total+' SOL','visibility: '+o.vis,'expires: '+new Date(o.expires).toISOString(),'maker: '+o.maker].join('\n') }
+function lotLink(o){ const pl={v:1,id:o.id,s:o.side,m:o.mint,y:o.sym||'',q:o.qty,t:o.total,e:o.expires,c:o.created,k:o.maker,g:o.sig,z:o.vis};
+  return location.origin+location.pathname+'#lot-'+b64u.enc(new TextEncoder().encode(JSON.stringify(pl))) }
+function parseLot(h){ try{ const j=JSON.parse(new TextDecoder().decode(b64u.dec(h)));
+  if(j.v!==1||!isMint(j.m)||!isMint(j.k)||!(num(j.q)>0)||!(num(j.t)>0)||!['ask','bid'].includes(j.s)) return null;
+  return {id:String(j.id).slice(0,16),side:j.s,mint:j.m,sym:String(j.y||'').slice(0,16),qty:num(j.q),total:num(j.t),expires:+j.e,created:+j.c,maker:j.k,sig:String(j.g||''),vis:j.z==='public'?'public':'private',status:'open'} }catch(e){ return null } }
+async function verifySig(o){ try{ const key=await crypto.subtle.importKey('raw',b58dec(o.maker),{name:'Ed25519'},false,['verify']);
+  return await crypto.subtle.verify({name:'Ed25519'},key,b64u.dec(o.sig),new TextEncoder().encode(termsText(o)))?'ok':'bad' }catch(e){ return 'na' } }
+
+function labelHTML(o,opts={}){
+  const per=o.qty&&o.total?o.total/o.qty:0, m=opts.meta, vs=(m&&m.sol&&per)?(per/m.sol-1)*100:null;
+  return `<div class="label">
+    <div class="lh"><span>PACKAGE · ${o.side==='bid'?'BID LOT':'ASK LOT'}</span><span>${o.vis==='private'?'PRIVATE':'PUBLIC'}</span></div>
+    ${opts.stamp?`<span class="stamp" style="--c:${opts.stampC||'#b3261e'}">${opts.stamp}</span>`:''}
+    <div class="lt">${avatar(o)}<div><b>${o.sym?esc(o.sym)+' lot':'Your token lot'}</b>${o.mint?esc(short(o.mint)):'Choose a mint'}</div></div>
+    <div class="kv"><span>Quantity</span><b>${o.qty?fAmt(o.qty):'-'}</b></div>
+    ${isPump(o.mint)&&o.qty?`<div class="kv"><span>Share of supply</span><b>${(o.qty/PUMP.SUPPLY*100).toFixed(o.qty/PUMP.SUPPLY<.001?4:2)}%</b></div>`:''}
+    <div class="kv"><span>Total price</span><b>${o.total?fSol(o.total)+' SOL':'Set your price'}</b></div>
+    <div class="kv"><span>Per token</span><b>${per?fPx(per)+' SOL':'-'}</b></div>
+    <div class="kv"><span>vs market</span><b class="${vs==null?'':vs>=0?'up':'dn'}">${vs==null?'-':(vs>=0?'+':'')+vs.toFixed(1)+'%'}</b></div>
+    <div class="kv"><span>Trading venue</span><b>${m&&m.found?(m.stage==='curve'?'pump.fun curve':m.stage==='pumpswap'?'PumpSwap':esc(m.dex||'-')):(isPump(o.mint)?'pump.fun coin':'-')}</b></div>
+    <div class="kv"><span>Settlement</span><b>Solana → Solana</b></div>
+    <div class="kv"><span>Platform fee</span><b>None</b></div>
+    <div class="kv"><span>${o.expires?'Expires in':'Duration'}</span><b>${o.expires?left(o.expires):(opts.dur||'-')}</b></div>
+    <div class="kv" style="border:0"><span>Maker</span><b>${o.maker?esc(short(o.maker)):'connect wallet'}</b></div>
+    <div class="bar">${barcode((o.mint||'PACKAGE')+(o.id||''))}</div>
+    <div class="trk"><span>${o.id?'PKG-'+esc(o.id):'PKG-DRAFT'}</span><span>FULL LOT</span></div>
+    <div class="swap"><span>${o.side==='bid'?'SOL':'Token'}</span><span style="color:var(--blue)">⇄</span><span>${o.side==='bid'?'Token':'SOL'}</span></div>
+    <div class="fine">The taker pays Solana network fees and any token-account rent. No operator allowance. No deposit to negotiate. No automatic transfer.</div>
+  </div>` }
+
+/* offer form */
+let draftMeta=null, metaT=0;
+function draft(){ return {side:$('#oSide').value,vis:$('#oVis').value,mint:$('#oMint').value.trim(),qty:num($('#oQty').value),total:num($('#oTotal').value),maker:W.pk,
+  sym:draftMeta&&draftMeta.found?draftMeta.sym:'',img:draftMeta&&draftMeta.found?draftMeta.img:''} }
+function renderGlance(){ const d=draft(); if(!isMint(d.mint)) d.mint=''; $('#glance').innerHTML=labelHTML(d,{meta:draftMeta,dur:$('#oDur').selectedOptions[0].text}); const mv=$('#oMint').value.trim(), h=$('#oHint');
+  h.className='hint'+(isMint(mv)?(isPump(mv)?' ok':' warn'):''); h.textContent=!isMint(mv)?'pump.fun mints end in "pump".':isPump(mv)?'pump.fun mint detected · 1,000,000,000 supply · 6 decimals':'Not a pump.fun mint. Supply and decimal checks are skipped.';
+  $('#oSubmit').textContent=W.pk?'Sign terms and post offer':'Verify wallet and post offer' }
+['#oSide','#oVis','#oQty','#oTotal','#oDur'].forEach(s=>$(s).addEventListener('input',renderGlance));
+$('#oMint').addEventListener('input',()=>{ draftMeta=null; renderGlance(); clearTimeout(metaT); const m=$('#oMint').value.trim(); if(!isMint(m))return;
+  metaT=setTimeout(async()=>{ try{ const x=await tokenMeta(m); if($('#oMint').value.trim()===m){ draftMeta=x; renderGlance() } }catch(e){} },350) });
+$('#offerForm').addEventListener('input',()=>{ $('#oErr').textContent='' });
+$('#offerForm').addEventListener('submit',async e=>{ e.preventDefault(); const d=draft(), err=$('#oErr'); err.textContent='';
+  if(!isMint(d.mint)) return err.textContent='Enter a valid Solana mint address.';
+  if(!d.qty) return err.textContent='Enter the token quantity.';
+  if(!d.total) return err.textContent='Enter the total price in SOL.';
+  if(isPump(d.mint)){ if(d.qty>PUMP.SUPPLY) return err.textContent='pump.fun coins have a fixed supply of 1,000,000,000. Lower the quantity.';
+    if(((($('#oQty').value.split('.')[1])||'').length)>PUMP.DEC) return err.textContent='pump.fun coins use 6 decimals. Trim the quantity to 6 decimal places.' }
+  if(!W.pk){ openWallet(); return err.textContent='Connect a wallet to sign the terms.' }
+  const now=Date.now(), o={...d,id:Math.random().toString(36).slice(2,8).toUpperCase()+now.toString(36).slice(-4).toUpperCase(),created:now,expires:now+(+$('#oDur').value)*3600e3,status:'open',sig:''};
+  try{ const r=await W.p.signMessage(new TextEncoder().encode(termsText(o)),'utf8'); o.sig=b64u.enc(new Uint8Array(r.signature||r)) }
+  catch(x){ return err.textContent='Signature was declined. Nothing was posted.' }
+  const all=Store.offers(); all.unshift(o); Store.saveOffers(all);
+  $('#offerForm').reset(); draftMeta=null; renderGlance(); toast('Lot '+o.id+' sealed and posted');
+  if(o.vis==='private') showLink(o); else location.hash='#markets';
+});
+function showLink(o){ const l=lotLink(o); modal('Private link — lot '+o.id,`<p style="margin-top:0">Send this link to your counterparty. Anyone holding it can open the lot.</p><input class="in" value="${esc(l)}" readonly onfocus="this.select()"><p style="display:flex;gap:8px;margin-bottom:0"><button class="btn pri" id="lkCopy">Copy link</button><a class="btn" href="#portfolio" onclick="closeModal()">View in Portfolio</a></p>`); $('#lkCopy').onclick=()=>copy(l,'Private link copied') }
+
+/* take a lot */
+function openLot(o){ const mine=W.pk&&W.pk===o.maker;
+  modal('Lot '+o.id,labelHTML(o,{meta:metaCache[o.mint]})+`<p style="font-size:12.500px;color:var(--mute)">Mint: <span class="mono" style="word-break:break-all">${esc(o.mint)}</span></p><div style="display:flex;gap:8px;flex-wrap:wrap">${mine?'<button class="btn" id="lotCancel">Cancel lot</button>':`<button class="btn pri" id="lotTake">${o.side==='ask'?'Buy lot':'Sell lot'} · sign &amp; settle</button>`}<button class="btn" id="lotShare">Copy link</button><a class="btn" href="https://solscan.io/token/${esc(o.mint)}" target="_blank" rel="noopener">Solscan ↗</a></div>`);
+  $('#lotShare').onclick=()=>copy(lotLink(o),'Lot link copied');
+  if(mine) $('#lotCancel').onclick=()=>{ cancelLot(o.id); closeModal() }; else $('#lotTake').onclick=()=>take(o);
+  tokenMeta(o.mint).catch(()=>{}) }
+async function take(o){ if(!W.pk){ closeModal(); return openWallet() } if(o.expires<=Date.now()) return toast('This lot has expired','var(--red)');
+  try{ const tx=await settleLot(o); const all=Store.offers(), i=all.findIndex(x=>x.id===o.id); if(i>=0){ all[i].status='settled'; Store.saveOffers(all) }
+    const d=Store.deals(); d.unshift({id:o.id,mint:o.mint,sym:o.sym,qty:o.qty,total:o.total,tx:String(tx),at:Date.now(),maker:o.maker,taker:W.pk}); Store.saveDeals(d); closeModal(); toast('Lot delivered'); render() }
+  catch(e){ toast(e.message||'Settlement failed. Nothing moved.','var(--red)') } }
+function cancelLot(id){ const all=Store.offers(), i=all.findIndex(x=>x.id===id); if(i>=0){ all[i].status='cancelled'; Store.saveOffers(all); toast('Lot '+id+' cancelled','var(--orange)'); render() } }
+
+/* ---------- renderers ---------- */
+const EMPTY_BOX='<svg viewBox="0 0 32 32"><use href="#box"/></svg>';
+let obSide='all';
+function renderBook(){ const q=$('#obSearch').value.trim().toLowerCase(), min=num($('#obMin').value);
+  const all=liveOffers().filter(o=>o.vis==='public'); const rows=all.filter(o=>(obSide==='all'||o.side===obSide)&&o.total>=min&&(!q||(o.sym||'').toLowerCase().includes(q)||o.mint.toLowerCase().includes(q)));
+  $('#obCount').textContent=all.length+' loaded';
+  if(!rows.length){ $('#obBody').innerHTML=`<div class="empty">${EMPTY_BOX}<b>${all.length?'No lots match those filters':'The dock is clear'}</b>${all.length?'Loosen the search or size filter.':'No open lots yet. Be the first to put one on the belt.'}<p><a class="btn pri" href="#offer">Post an offer →</a></p></div>`; return }
+  $('#obBody').innerHTML=`<table><thead><tr><th>TOKEN</th><th>SIDE</th><th>AMOUNT</th><th>PRICE, SOL</th><th>TOTAL, SOL</th><th>VS MARKET</th><th>EXPIRES</th><th></th></tr></thead><tbody>${rows.map(o=>{ const per=o.total/o.qty, m=metaCache[o.mint], vs=m&&m.sol?(per/m.sol-1)*100:null;
+    return `<tr><td><span class="tok">${avatar(o)}${esc(o.sym||short(o.mint))}</span></td><td><span class="side ${o.side}">${o.side.toUpperCase()}</span></td><td class="n">${fAmt(o.qty)}</td><td class="n">${fPx(per)}</td><td class="n"><b>${fSol(o.total)}</b></td><td class="n ${vs==null?'':vs>=0?'up':'dn'}">${vs==null?'-':(vs>=0?'+':'')+vs.toFixed(1)+'%'}</td><td class="n">${left(o.expires)}</td><td><button class="btn sm" data-lot="${esc(o.id)}">${o.side==='ask'?'Buy lot':'Sell lot'}</button></td></tr>` }).join('')}</tbody></table>`;
+  $$('#obBody [data-lot]').forEach(b=>b.onclick=()=>openLot(all.find(o=>o.id===b.dataset.lot)));
+  rows.forEach(o=>{ if(!metaCache[o.mint]) tokenMeta(o.mint).then(()=>{ if(route==='markets')renderBook() }).catch(()=>{ metaCache[o.mint]={found:false} }) }) }
+$('#obSearch').oninput=renderBook; $('#obMin').oninput=renderBook;
+$$('#obTabs button').forEach(b=>b.onclick=()=>{ obSide=b.dataset.s; $$('#obTabs button').forEach(x=>x.classList.toggle('on',x===b)); renderBook() });
+
+function dealRows(list){ if(!list.length) return `<div class="empty" style="display:block">${EMPTY_BOX}<b>No deliveries yet</b>Settled lots will be logged here with their transaction.</div>`;
+  return list.map(d=>`<div><span class="ic">⇄</span><span><b>${fAmt(d.qty)} ${esc(d.sym||short(d.mint))}</b> for <b>${fSol(d.total)} SOL</b><small>tx ${/^[1-9A-HJ-NP-Za-km-z]{60,90}$/.test(d.tx)?`<a href="https://solscan.io/tx/${esc(d.tx)}" target="_blank" rel="noopener">${esc(short(d.tx))}</a>`:esc(short(d.tx))}</small></span><span class="ago">${ago(d.at)}</span></div>`).join('') }
+
+function renderPortfolio(){ const el=$('#portBody');
+  if(!W.pk){ el.innerHTML=`<div class="empty">${EMPTY_BOX}<b>Connect a wallet</b>Your offers and deals show up here once a wallet is connected.<p><button class="btn pri" id="pConn">Connect wallet</button></p></div>`; $('#pConn').onclick=openWallet; return }
+  const mine=Store.offers().filter(o=>o.maker===W.pk), deals=Store.deals().filter(d=>d.maker===W.pk||d.taker===W.pk);
+  const st=o=>o.status==='open'?(o.expires>Date.now()?'OPEN':'EXPIRED'):o.status.toUpperCase();
+  el.innerHTML=`<div style="padding:14px 14px 0"><div class="sh"><h2>Your offers</h2><span class="count">${mine.length}</span></div></div>`+(mine.length?`<div class="tw"><table><thead><tr><th>LOT</th><th>TOKEN</th><th>SIDE</th><th>AMOUNT</th><th>TOTAL, SOL</th><th>VISIBILITY</th><th>STATUS</th><th></th></tr></thead><tbody>${mine.map(o=>`<tr><td class="n">PKG-${esc(o.id)}</td><td><span class="tok">${avatar(o)}${esc(o.sym||short(o.mint))}</span></td><td><span class="side ${o.side}">${o.side.toUpperCase()}</span></td><td class="n">${fAmt(o.qty)}</td><td class="n"><b>${fSol(o.total)}</b></td><td>${o.vis}</td><td class="n">${st(o)}${st(o)==='OPEN'?' · '+left(o.expires):''}</td><td>${st(o)==='OPEN'?`<button class="btn sm" data-link="${esc(o.id)}">Link</button> <button class="btn sm" data-cancel="${esc(o.id)}">Cancel</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">${EMPTY_BOX}<b>No lots from this wallet</b>Post an offer and it will be tracked here.<p><a class="btn pri" href="#offer">Post an offer →</a></p></div>`)
+   +`<div style="padding:14px 14px 0"><div class="sh"><h2>Your deals</h2><span class="count">${deals.length}</span></div></div><div class="rows">${dealRows(deals)}</div>`;
+  $$('#portBody [data-link]').forEach(b=>b.onclick=()=>showLink(mine.find(o=>o.id===b.dataset.link)));
+  $$('#portBody [data-cancel]').forEach(b=>b.onclick=()=>cancelLot(b.dataset.cancel)) }
+
+/* scanner */
+$('#scanForm').addEventListener('submit',async e=>{ e.preventDefault(); const m=$('#scanMint').value.trim(), out=$('#scanOut');
+  if(!isMint(m)){ out.innerHTML='<div class="err">That doesn\'t look like a Solana mint address.</div>'; return }
+  out.innerHTML='<p class="mono" style="color:var(--mute)">Scanning pools…</p>';
+  try{ const x=await tokenMeta(m);
+    if(!x.found){ out.innerHTML=`<div class="note"><b>No pool found for this mint</b>You can still prepare an offer. The label just won't show a market comparison.</div><a class="btn pri" href="#offer" data-pre="${esc(m)}">Prepare offer →</a>` }
+    else out.innerHTML=`<div class="tw"><table><thead><tr><th>TOKEN</th><th>PRICE</th><th>24H</th><th>POOL DEPTH</th><th>READING</th><th>POOL</th><th></th></tr></thead><tbody><tr><td><span class="tok">${avatar({sym:x.sym,mint:m,img:x.img})}<span>${esc(x.sym)}<small style="display:block;font:11px var(--mono);color:var(--mute);font-weight:normal">${esc(x.name)} | ${esc(short(m))}</small></span></span></td><td class="n">$${fPx(x.usd)}${x.sol?`<small style="display:block;color:var(--mute)">${fPx(x.sol)} SOL</small>`:''}</td><td class="n ${x.ch24>=0?'up':'dn'}">${x.ch24==null?'-':(+x.ch24).toFixed(2)+'%'}</td><td class="n">$${fAmt(x.liqUsd)}${x.liqSol?`<small style="display:block;color:var(--mute)">${fSol(x.liqSol)} SOL side</small>`:''}</td><td class="n">${new Date(x.at).toISOString().slice(0,19).replace('T',' ')} UTC<small style="display:block;color:var(--mute)">${x.pools} pool${x.pools>1?'s':''} sampled</small></td><td class="n">${x.stage==='curve'?'pump.fun curve':x.stage==='pumpswap'?'PumpSwap':esc(x.dex||'-')}</td><td><a class="btn sm pri" href="#offer" data-pre="${esc(m)}" data-priv="1">Private offer</a> ${x.liqSol?`<a class="btn sm" href="#home" data-liq="${x.liqSol}">Weigh slippage</a>`:''}</td></tr></tbody></table></div>`;
+    $$('#scanOut [data-pre]').forEach(a=>a.onclick=()=>{ $('#oMint').value=a.dataset.pre; if(a.dataset.priv)$('#oVis').value='private'; draftMeta=metaCache[a.dataset.pre]||null; renderGlance() });
+    $$('#scanOut [data-liq]').forEach(a=>a.onclick=()=>{ $('#slL').value=(+a.dataset.liq).toFixed(2); slip(); setTimeout(()=>{ $('#slV').scrollIntoView({block:'center'}); $('#slV').focus() },120) });
+  }catch(err){ out.innerHTML='<div class="note"><b>Scanner offline</b>Live pool data couldn\'t be reached from here. Try again in a moment.</div>' } });
+
+/* slippage scale */
+let slMode='pool';
+function slip(){ let V=0, got=0;
+  if(slMode==='pool'){ const L=num($('#slL').value); V=num($('#slV').value); if(V&&L) got=L*V/(L+V) }
+  else{ const T=Math.min(num($('#scTok').value),PUMP.SUPPLY), R=Math.min(num($('#scSol').value),PUMP.GRAD);
+    if(T&&R){ const k=PUMP.VSOL*PUMP.VTOK, vS=PUMP.VSOL+R, vT=k/vS; V=T*vS/vT; got=Math.min(vS-k/(vT+T),R)*(1-PUMP.FEE) } }
+  if(!V||!got){ ['#slOutM','#slOutF','#slImp','#slLoss'].forEach(s=>$(s).textContent='–'); $('#slBarM').style.width=$('#slBarF').style.width='0'; return }
+  $('#slBarF').style.width='100%'; $('#slBarM').style.width=(got/V*100).toFixed(1)+'%';
+  $('#slOutF').textContent=fSol(V)+' SOL'; $('#slOutM').textContent=fSol(got)+' SOL'; $('#slImp').textContent='-'+((1-got/V)*100).toFixed(1)+'%'; $('#slLoss').textContent=fSol(V-got)+' SOL' }
+$$('#slMode button').forEach(b=>b.onclick=()=>{ slMode=b.dataset.m; $$('#slMode button').forEach(x=>x.classList.toggle('on',x===b)); $('#slPool').hidden=slMode!=='pool'; $('#slCurve').hidden=slMode!=='curve';
+  $('#slNote').textContent=slMode==='pool'?'Constant-product estimate from your own numbers. Pool fees excluded.':'pump.fun default curve: 30 SOL and 1.073B virtual reserves, 1.25% trade fee.'; slip() });
+$('#scTok').oninput=slip; $('#scSol').oninput=slip;
+$('#slV').oninput=slip; $('#slL').oninput=slip;
+
+/* private link open + lot view */
+let curLot=null;
+$('#openForm').addEventListener('submit',e=>{ e.preventDefault(); const v=$('#openLink').value.trim(), i=v.indexOf('#lot-'); const o=parseLot(i>=0?v.slice(i+5):v); if(!o) return toast('That link doesn\'t hold a valid lot','var(--red)'); location.hash='#lot-'+(i>=0?v.slice(i+5):v) });
+$('#privCta').onclick=()=>{ $('#oVis').value='private'; renderGlance() };
+async function renderLot(){ const o=curLot; if(!o){ go('private'); return }
+  const exp=o.expires<=Date.now(); let meta=null; try{ meta=await tokenMeta(o.mint); if(meta.found&&!o.sym){ o.sym=meta.sym } if(meta.found)o.img=meta.img }catch(e){}
+  $('#lotLabel').innerHTML=labelHTML(o,{meta,stamp:exp?'EXPIRED':'SEALED',stampC:exp?'#b3261e':'#0b7a4a'});
+  const sig=await verifySig(o), per=o.total/o.qty, vs=meta&&meta.sol?(per/meta.sol-1)*100:null;
+  const row=(k,v,c)=>`<div class="kv"><span>${k}</span><b style="color:${c||'inherit'}">${v}</b></div>`;
+  $('#lotChecks').innerHTML=row('Maker signature',sig==='ok'?'✓ Verified':sig==='bad'?'✗ Does not match':'Could not be checked in this browser',sig==='ok'?'#0b7a4a':sig==='bad'?'#b3261e':'')
+    +row('Maker wallet',`<span class="mono">${esc(short(o.maker))}</span>`)+row('Mint',`<a class="mono" href="https://solscan.io/token/${esc(o.mint)}" target="_blank" rel="noopener">${esc(short(o.mint))} ↗</a>`)
+    +row('Live market',meta&&meta.found&&meta.sol?fPx(meta.sol)+' SOL':'No pool reading')+row('Lot vs market',vs==null?'-':(vs>=0?'+':'')+vs.toFixed(1)+'%',vs==null?'':vs>=0?'#0b7a4a':'#b3261e')
+    +row('Status',exp?'Expired':'Open · '+left(o.expires)+' left',exp?'#b3261e':'#0b7a4a')
+    +`<div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri lg" id="lotGo" ${exp||sig==='bad'?'disabled':''}>${o.side==='ask'?'Buy lot':'Sell lot'} · sign &amp; settle</button><a class="btn lg" href="#trust">Pre-sign checklist</a></div>`;
+  $('#lotGo').onclick=()=>take(o) }
+
+/* checklist */
+$$('#check input').forEach(c=>c.onchange=()=>{ const n=$$('#check input:checked').length; $('#chkCount').textContent=n+' / 5'; if(n===5)toast('Checklist complete. Cleared to sign.') });
+
+/* ---------- router ---------- */
+const TITLES={home:'package.exe',markets:'order_book.xls',offer:'packing_slip.frm',private:'private_courier.hlp',lot:'manifest.lbl',deals:'delivered.log',trust:'settlement.hlp',portfolio:'my_lots.xls',docs:'readme.hlp'};
+let route='home';
+function go(r,keepHash){ route=TITLES[r]?r:'home'; $$('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+route));
+  $$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.r===route)); $('#taskTitle').textContent=TITLES[route]; $('#smenu').classList.remove('on'); window.scrollTo(0,0); render() }
+function onHash(){ const h=location.hash.slice(1); if(h.startsWith('lot-')){ const o=parseLot(h.slice(4)); if(o){ curLot=o; return go('lot') } toast('That link doesn\'t hold a valid lot','var(--red)'); return go('private') } go(h||'home') }
+window.addEventListener('hashchange',onHash);
+
+function render(){ const t=new Date().toISOString().slice(0,19).replace('T',' ')+' UTC'; $$('.readAt').forEach(e=>e.textContent=t);
+  const open=liveOffers().filter(o=>o.vis==='public'), deals=Store.deals();
+  $('#stOpen').textContent=open.length; $('#stDeals').textContent=deals.length; $('#stVol').textContent=fSol(deals.reduce((s,d)=>s+d.total,0))+' SOL';
+  if(route==='markets'){ renderBook(); $('#recentDeals').innerHTML=dealRows(deals.slice(0,5)) }
+  if(route==='deals'){ $('#allDeals').innerHTML=dealRows(deals); $('#dealCount').textContent=deals.length }
+  if(route==='portfolio') renderPortfolio();
+  if(route==='offer') renderGlance();
+  if(route==='lot') renderLot() }
+
+/* ---------- chrome ---------- */
+$('#tickerTxt').textContent=CFG.TICKER; $('#tickerFoot').textContent=CFG.TICKER;
+$('#caBox').innerHTML=CFG.CA?`CA <span>${esc(CFG.CA)}</span><button type="button" id="caCopy">copy</button>`:`CA <span>posted on <a href="${esc(CFG.X_URL)}" target="_blank" rel="noopener" style="color:var(--cyan)">@UsePackage</a> at launch</span>`;
+if(CFG.CA) $('#caCopy').onclick=()=>copy(CFG.CA,'Contract address copied');
+['#xLink','#xLink2'].forEach(s=>$(s).href=CFG.X_URL); (CFG.CA&&CFG.PUMP_URL==='https://pump.fun/'&&(CFG.PUMP_URL='https://pump.fun/coin/'+CFG.CA)),['#pumpLink','#pumpLink2','#pumpLink3','#pumpLink4'].forEach(s=>$(s).href=CFG.PUMP_URL);
+$('#startBtn').onclick=e=>{ e.stopPropagation(); const on=$('#smenu').classList.toggle('on'); $('#startBtn').setAttribute('aria-expanded',on) };
+document.addEventListener('click',e=>{ if(!e.target.closest('#smenu'))$('#smenu').classList.remove('on') });
+setInterval(()=>{ $('#clock').textContent=new Date().toISOString().slice(11,19)+' UTC' },1000);
+setInterval(()=>{ if(route==='markets'||route==='portfolio')render() },30000);
+onHash();
+</script>
+<script>
+/* ---------- boot splash (once per session) ---------- */
+(function(){ const b=document.getElementById('boot'); let seen=false;
+  try{ seen=sessionStorage.getItem('pkg.boot')==='1'; sessionStorage.setItem('pkg.boot','1') }catch(e){}
+  const still=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(seen||still){ b.remove(); return }
+  setTimeout(()=>{ b.classList.add('off'); setTimeout(()=>b.remove(),400) },1150);
+})();
+
+/* ---------- isometric warehouse scene ---------- */
+(function(){
+const svg=document.getElementById('iso'); if(!svg) return;
+const NS='http://www.w3.org/2000/svg', S=27, OX=318, OY=120, CX=S*.866, CY=S*.5, LINE='#060b12';
+const P=(x,y,z)=>[OX+(x-y)*CX, OY+(x+y)*CY-(z||0)*S];
+const pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+const el=(t,a,p)=>{ const e=document.createElementNS(NS,t); for(const k in a) e.setAttribute(k,a[k]); (p||svg).appendChild(e); return e };
+const G=(p,a)=>el('g',a||{},p);
+function shade(hex,f){ const n=parseInt(hex.slice(1),16), ch=[n>>16,n>>8&255,n&255].map(v=>Math.max(0,Math.min(255,Math.round(f<1?v*f:v+(255-v)*(f-1)))));
+  return '#'+ch.map(v=>v.toString(16).padStart(2,'0')).join('') }
+let seed=11; const rnd=()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296 };
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const KRAFT=['#c8935a','#d9a56c','#b8824a','#e0b07a'], POP=['#ff6a1a','#2563ff','#ec4899','#16b364','#7c5cff','#ffc928','#22d3ee','#e5484d','#0fa3a3'];
+
+function box(g,x,y,z,w,d,h,c,o){ o=o||{};
+  const A=P(x,y,z+h),B=P(x+w,y,z+h),C=P(x+w,y+d,z+h),D=P(x,y+d,z+h),D0=P(x,y+d,z),C0=P(x+w,y+d,z),B0=P(x+w,y,z);
+  const st={stroke:o.line||LINE,'stroke-width':o.sw==null?1:o.sw,'stroke-linejoin':'round'};
+  el('polygon',Object.assign({points:pts([D,C,C0,D0]),fill:o.left||shade(c,.74)},st),g);
+  el('polygon',Object.assign({points:pts([C,B,B0,C0]),fill:o.right||shade(c,.5)},st),g);
+  el('polygon',Object.assign({points:pts([A,B,C,D]),fill:o.top||shade(c,1.16)},st),g) }
+function quad(g,a,fill,extra){ return el('polygon',Object.assign({points:pts(a),fill:fill},extra||{}),g) }
+function parcel(g,x,y,z,w,d,h,c,tape){ box(g,x,y,z,w,d,h,c);
+  const a=x+w*.38,b=x+w*.62;
+  quad(g,[P(a,y,z+h),P(b,y,z+h),P(b,y+d,z+h),P(a,y+d,z+h)],tape);
+  quad(g,[P(a,y+d,z+h),P(b,y+d,z+h),P(b,y+d,z+h*.4),P(a,y+d,z+h*.4)],shade(tape,.72));
+  quad(g,[P(x+w,y+d*.62,z+h*.78),P(x+w,y+d*.2,z+h*.78),P(x+w,y+d*.2,z+h*.4),P(x+w,y+d*.62,z+h*.4)],'#fffef8',{opacity:.92});
+  const l1=P(x+w,y+d*.55,z+h*.66), l2=P(x+w,y+d*.28,z+h*.66); el('line',{x1:l1[0],y1:l1[1],x2:l2[0],y2:l2[1],stroke:'#14171d','stroke-width':1.2},g) }
+
+/* defs */
+const defs=el('defs',{});
+defs.innerHTML='<linearGradient id="gBeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22d3ee" stop-opacity=".85"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>'
+ +'<radialGradient id="gCy"><stop offset="0" stop-color="#22d3ee" stop-opacity=".5"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>'
+ +'<radialGradient id="gOr"><stop offset="0" stop-color="#ff6a1a" stop-opacity=".55"/><stop offset="1" stop-color="#ff6a1a" stop-opacity="0"/></radialGradient>'
+ +'<radialGradient id="gVi"><stop offset="0" stop-color="#7c5cff" stop-opacity=".45"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient>'
+ +'<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+
+/* floor */
+const gFloor=G();
+box(gFloor,0,0,-.45,12,12,.45,'#1b3247',{top:'#0f2032',left:'#0b1826',right:'#08121d',line:'#2b4a66'});
+for(let i=1;i<12;i++){ const a=P(i,0),b=P(i,12),c=P(0,i),d=P(12,i);
+  el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#22d3ee','stroke-opacity':i%3?0.08:0.2},gFloor);
+  el('line',{x1:c[0],y1:c[1],x2:d[0],y2:d[1],stroke:'#22d3ee','stroke-opacity':i%3?0.08:0.2},gFloor) }
+const glow=(x,y,r,id)=>{ const c=P(x,y); el('ellipse',{cx:c[0],cy:c[1],rx:r,ry:r*.5,fill:'url(#'+id+')'},gFloor) };
+glow(6.2,6.6,120,'gCy'); glow(11,6.6,110,'gOr'); glow(2.5,9.8,90,'gVi');
+/* lane markings */
+[[1.3,5.35,11.8,5.35],[1.3,7.95,11.8,7.95]].forEach(l=>{ const a=P(l[0],l[1]),b=P(l[2],l[3]); el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#ffc928','stroke-width':2.2,'stroke-dasharray':'9 6',opacity:.85},gFloor) });
+quad(gFloor,[P(7.6,8.4),P(9.6,8.4),P(9.6,11.4),P(7.6,11.4)],'none',{stroke:'#7c5cff','stroke-width':1.5,'stroke-dasharray':'4 4',opacity:.8});
+
+/* racks */
+const gRacks=G();
+function bay(x,y,alongX){ const w=alongX?1.5:1, d=alongX?1:1.5, H=3.75, post='#3d5068';
+  box(gRacks,x,y,0,.09,.09,H,post); box(gRacks,x+w-.09,y,0,.09,.09,H,post);
+  [0.02,1.28,2.54].forEach((z,li)=>{ if(li) box(gRacks,x,y,z-.09,w,d,.09,'#4b607a');
+    let u=.12; const span=(alongX?w:d)-.24;
+    while(u<span-.25){ const cw=Math.min(span-u+.12,.45+rnd()*.5), ch=.42+rnd()*.5, c=rnd()<.52?pick(KRAFT):pick(POP), tape=pick(POP);
+      if(rnd()<.14){ u+=cw+.08; continue }
+      if(alongX) parcel(gRacks,x+u,y+.14,z,cw,.7,ch,c,tape); else parcel(gRacks,x+.14,y+u,z,.7,cw,ch,c,tape);
+      u+=cw+.07 } });
+  box(gRacks,x,y+d-.09,0,.09,.09,H,post); box(gRacks,x+w-.09,y+d-.09,0,.09,.09,H,post);
+  box(gRacks,x,y,H,w,d,.07,'#4b607a') }
+for(let x=1.5;x<11;x+=1.58) bay(x,.25,true);
+for(let y=1.7;y<11;y+=1.58) bay(.25,y,false);
+
+/* robot arm base, conveyor */
+const gBack=G();
+box(gBack,3.5,3.7,0,1,1,.35,'#2b3a4b'); box(gBack,3.78,3.98,.35,.44,.44,1.75,'#ff6a1a');
+for(let x=2.4;x<11;x+=1.7){ box(gBack,x,6.08,0,.14,.14,.72,'#566579'); box(gBack,x,6.98,0,.14,.14,.72,'#566579') }
+box(gBack,1.5,6,.72,9.9,1.2,.2,'#2b3a4b',{top:'#131c27'});
+const clip=el('clipPath',{id:'beltClip'},defs); quad(clip,[P(1.5,6,.92),P(11.4,6,.92),P(11.4,7.2,.92),P(1.5,7.2,.92)],'#fff');
+const gRollWrap=G(gBack,{'clip-path':'url(#beltClip)'}), gRoll=G(gRollWrap);
+for(let x=1;x<12;x+=.36){ const a=P(x,6.02,.92),b=P(x,7.18,.92); el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#3f5166','stroke-width':2.4},gRoll) }
+box(gBack,1.5,5.9,.92,9.9,.09,.13,'#ff6a1a');
+box(gBack,6,5.5,0,.36,.3,3.15,'#5a6b80');
+
+/* moving parcels */
+const gParcels=G(), SPEC=[[.95,.9,.72,'#c8935a','#ff6a1a'],[.7,.7,.5,'#e0b07a','#2563ff'],[1,.95,.9,'#b8824a','#ffc928'],[.8,.75,.55,'#d9a56c','#ec4899'],[.9,.85,.66,'#c8935a','#16b364']];
+const movers=SPEC.map(s=>{ const g=G(gParcels); parcel(g,0,6+(1.2-s[1])/2,.92,s[0],s[1],s[2],s[3],s[4]); return g });
+
+/* front of belt: rail, housings, gate, arm */
+const gFront=G();
+box(gFront,1.5,7.21,.92,9.9,.09,.13,'#ff6a1a');
+function housing(x,c,txt){ box(gFront,x,5.62,0,1.5,1.96,2.35,'#33445a');
+  quad(gFront,[P(x+.15,7.58,2.05),P(x+1.35,7.58,2.05),P(x+1.35,7.58,1.72),P(x+.15,7.58,1.72)],c,{filter:'url(#glow)'});
+  for(let i=0;i<5;i++) quad(gFront,[P(x+.05+i*.3,7.58,.34),P(x+.2+i*.3,7.58,.34),P(x+.32+i*.3,7.58,.04),P(x+.17+i*.3,7.58,.04)],'#ffc928');
+  quad(gFront,[P(x+.25,5.62,2.36),P(x+1.25,5.62,2.36),P(x+1.25,7.2,2.36),P(x+.25,7.2,2.36)],shade('#33445a',.8),{stroke:LINE});
+ }
+housing(1.15,'#22d3ee','IN'); housing(10.4,'#ff6a1a','OUT');
+const beam=quad(gFront,[P(6.18,5.82,3.15),P(6.18,7.4,3.15),P(6.18,7.4,.94),P(6.18,5.82,.94)],'url(#gBeam)',{class:'beam'});
+const la=P(6.18,5.82,1.02), lb=P(6.18,7.4,1.02);
+el('line',{x1:la[0],y1:la[1],x2:lb[0],y2:lb[1],stroke:'#9ff3ff','stroke-width':2,class:'laser',filter:'url(#glow)'},gFront);
+box(gFront,6,5.5,3.15,.36,2.2,.36,'#5a6b80'); box(gFront,6,7.4,0,.36,.3,3.15,'#5a6b80');
+const lp=P(6.18,7.7,3.33); const lamp=el('circle',{cx:lp[0],cy:lp[1],r:4,fill:'#16b364',stroke:LINE,filter:'url(#glow)'},gFront);
+/* arm */
+const sh=P(4,4.2,2.2), elb=P(4.5,5.1,3.15), wr=P(4.6,6.3,2.55);
+const gArm=G(gFront); gArm.style.transformOrigin=sh[0]+'px '+sh[1]+'px';
+el('path',{d:'M'+sh+' L'+elb+' L'+wr,fill:'none',stroke:LINE,'stroke-width':11,'stroke-linecap':'round','stroke-linejoin':'round'},gArm);
+el('path',{d:'M'+sh+' L'+elb+' L'+wr,fill:'none',stroke:'#ff6a1a','stroke-width':8,'stroke-linecap':'round','stroke-linejoin':'round'},gArm);
+[sh,elb].forEach(p=>el('circle',{cx:p[0],cy:p[1],r:6,fill:'#ffc928',stroke:LINE,'stroke-width':1.5},gArm));
+el('path',{d:'M'+(wr[0]-8)+' '+(wr[1]+2)+' v10 M'+(wr[0]+8)+' '+(wr[1]+2)+' v10 M'+(wr[0]-9)+' '+(wr[1]+2)+' h18',fill:'none',stroke:'#cfe3ef','stroke-width':3,'stroke-linecap':'round'},gArm);
+
+/* foreground: pallets, CRT terminal, AGV */
+const gFore=G();
+box(gFore,1.7,8.7,0,2.2,2.2,.16,'#7a4f26');
+[[1.8,8.8,.9],[2.85,8.8,.7],[1.8,9.85,.75],[2.85,9.85,.95]].forEach((b,i)=>parcel(gFore,b[0],b[1],.16,.95,.95,b[2],KRAFT[i],POP[i+2]));
+parcel(gFore,2.3,9.3,1.11,.9,.9,.6,'#e0b07a','#22d3ee');
+box(gFore,4.9,9.6,0,1.6,1.6,.16,'#7a4f26'); parcel(gFore,5.05,9.75,.16,1.3,1.3,.85,'#b8824a','#ff6a1a'); parcel(gFore,5.25,9.95,1.01,.9,.9,.55,'#2563ff','#ffc928');
+box(gFore,10,9.3,0,1.6,1.15,.8,'#5f4a36'); box(gFore,10.25,9.42,.8,1.05,.9,.9,'#d8d2bd');
+quad(gFore,[P(10.36,10.32,.95),P(11.2,10.32,.95),P(11.2,10.32,1.58),P(10.36,10.32,1.58)],'#052b2b',{stroke:LINE});
+[[1.46,'#3dfc9a',.7],[1.34,'#22d3ee',.5],[1.22,'#3dfc9a',.62],[1.1,'#ffc928',.34]].forEach(l=>{ const a=P(10.44,10.32,l[0]),b=P(10.44+l[2],10.32,l[0]); el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:l[1],'stroke-width':1.6,class:l[0]===1.1?'lamp':''},gFore) });
+box(gFore,10.9,10.55,.8,.5,.3,.06,'#cfc8b0');
+const gAgv=G(gFore);
+box(gAgv,8.15,8.7,.08,.95,1.25,.26,'#7c5cff'); parcel(gAgv,8.25,8.9,.34,.75,.8,.6,'#c8935a','#ec4899');
+const al=P(8.62,9.95,.24); el('circle',{cx:al[0],cy:al[1],r:2.6,fill:'#9ff3ff',class:'lamp',filter:'url(#glow)'},gAgv);
+
+/* air: drones + HUD */
+const gAir=G();
+function drone(x,y,z,c,cls){ const s=P(x,y,0); el('ellipse',{cx:s[0],cy:s[1],rx:17,ry:6,fill:'#000',opacity:.3},gAir);
+  const p=P(x,y,z), g=G(gAir,{class:'drone '+(cls||'')});
+  el('line',{x1:p[0],y1:p[1]+5,x2:p[0],y2:p[1]+19,stroke:'#cfe3ef','stroke-width':1},g);
+  el('rect',{x:p[0]-9,y:p[1]+19,width:18,height:13,fill:'#c8935a',stroke:LINE},g); el('rect',{x:p[0]-2,y:p[1]+19,width:4,height:13,fill:c},g);
+  el('path',{d:'M'+(p[0]-22)+' '+(p[1]-3)+' h44',stroke:'#8ea3b5','stroke-width':3,'stroke-linecap':'round'},g);
+  [-22,22].forEach(dx=>{ el('ellipse',{cx:p[0]+dx,cy:p[1]-7,rx:12,ry:2.6,fill:'#cfe3ef',opacity:.55,class:'lamp'},g); el('rect',{x:p[0]+dx-1.5,y:p[1]-8,width:3,height:6,fill:'#8ea3b5'},g) });
+  el('rect',{x:p[0]-12,y:p[1]-6,width:24,height:12,rx:5,fill:c,stroke:LINE},g);
+  el('circle',{cx:p[0],cy:p[1],r:2.6,fill:'#9ff3ff',filter:'url(#glow)',class:'lamp'},g) }
+drone(8.6,2.6,4.7,'#7c5cff'); drone(3.2,7.6,4.9,'#ec4899','d2');
+function hud(from,dx,dy,txt,c){ const tx=from[0]+dx, ty=from[1]+dy, w=txt.length*5.5+14, left=dx<0;
+  el('path',{d:'M'+from[0]+' '+from[1]+' L'+tx+' '+ty+' h'+(left?-10:10),fill:'none',stroke:c,'stroke-width':1,opacity:.9},gAir);
+  el('circle',{cx:from[0],cy:from[1],r:2.4,fill:c},gAir);
+  const rx=left?tx-10-w:tx+10; el('rect',{x:rx,y:ty-9,width:w,height:18,fill:'#050d15','fill-opacity':.85,stroke:c,rx:2},gAir);
+  const t=el('text',{x:rx+7,y:ty+3.2,'font-size':9,fill:c,class:'hud','letter-spacing':.5},gAir); t.textContent=txt; return t }
+const hudGate=hud(P(6.18,6.6,3.55),-16,-152,'SCAN > SIGN > SETTLE','#22d3ee');
+hud(P(11.2,6.6,2.4),-8,-62,'DOCK-OUT / SOL','#ff9a52');
+hud(P(.9,6.4,3.3),-4,-44,'BAY B-04 / SEALED','#ffc928');
+
+/* animation */
+const X0=1.7, L=9.3, V=.62, still=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+function frame(ms){ const t=ms/1000; let near=false;
+  movers.forEach((g,i)=>{ const x=X0+((t*V+i*L/movers.length)%L); g.setAttribute('transform','translate('+(x*CX).toFixed(2)+','+(x*CY).toFixed(2)+')'); if(Math.abs(x+SPEC[i][0]/2-6.18)<.55) near=true });
+  const r=(t*V)%.36; gRoll.setAttribute('transform','translate('+(r*CX).toFixed(2)+','+(r*CY).toFixed(2)+')');
+  const dy=(Math.sin(t*.55)+1)*.95; gAgv.setAttribute('transform','translate('+(-dy*CX).toFixed(2)+','+(dy*CY).toFixed(2)+')');
+  gArm.style.transform='rotate('+(Math.sin(t*.9)*5).toFixed(2)+'deg)';
+  lamp.setAttribute('fill',near?'#3dfc9a':'#ffc928'); hudGate.setAttribute('fill',near?'#3dfc9a':'#22d3ee');
+  if(!still) requestAnimationFrame(frame) }
+frame(still?4200:0);
+})();
+</script>
+</body>
+</html>
